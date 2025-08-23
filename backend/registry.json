@@ -1,0 +1,9 @@
+[
+  {
+    "id": "hello-fapi",
+    "name": "Hello FastAPI",
+    "description": "Tiny demo tool",
+    "path": "examples/hello-fapi",
+    "entry": "app:app"
+  }
+]

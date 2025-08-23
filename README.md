@@ -1,145 +1,307 @@
-# localstore
+# LocalStore
 
-*A Self-Hosted, Python-Based Marketplace for Secure, Transparent, and Collaborative Web Applications*
+*Stop copy-pasting random Python scripts from GitHub. LocalStore gives you a secure, unified way to run them as polished web tools on your own machine.*
+
+**LocalStore turns Python packages into one-click, browser-accessible web tools — bridging pip and modern app stores.**
 
 ---
 
 ## Table of Contents
 
-- [Introduction: The Fragmented Landscape of Specialized Tools](#introduction-the-fragmented-landscape-of-specialized-tools)
-- [Solution Overview: LocalStore](#solution-overview-localstore)
-- [Key Features](#key-features)
-- [Technical Architecture](#technical-architecture)
-- [Installation Guide](#installation-guide)
-- [Usage Instructions](#usage-instructions)
-- [Security and Privacy Considerations](#security-and-privacy-considerations)
-- [Extensibility and Community Contributions](#extensibility-and-community-contributions)
-- [Limitations and Future Directions](#limitations-and-future-directions)
-- [License](#license)
+- [Why LocalStore?](#why-localstore)
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Development](#development)
+- [Tool Development](#tool-development)
+- [API Reference](#api-reference)
+- [Requirements](#requirements)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## Introduction: The Fragmented Landscape of Specialized Tools
+## Why LocalStore?
 
-The exponential growth of domain-specific software tools—spanning data processing, media conversion, and analytical workflows—has led to a fragmented and often inhospitable ecosystem. Users encounter a host of challenges, including:
+The exponential growth of domain-specific Python tools has created a fragmented ecosystem where users encounter:
 
-- **Intrusive Advertisements & Data Exploitation:** Many online platforms monetize access through ads and opaque tracking, undermining user privacy and trust.
-- **Technical Barriers:** Open-source tools, while abundant, frequently demand advanced installation and configuration skills, alienating non-technical users.
-- **Lack of Unified Access:** Absence of a cohesive platform for discovering, installing, and running tools locally leads to inefficiency and redundancy.
-- **Security and Transparency Deficits:** Reliance on unvetted web services or binaries exposes users to security risks, with little recourse for code inspection or sandboxing.
-- **Collaboration Constraints:** Existing solutions rarely facilitate seamless, secure sharing of tools within local networks, impeding collaborative workflows.
-- **AI Integration Challenges:** Incorporating AI capabilities is often fragmented, lacking unified interfaces for both local and API-based models.
+- **Security Risks**: Running untrusted scripts from random GitHub repositories
+- **Installation Hassles**: Complex dependency management and environment setup
+- **No Unified Interface**: Tools scattered across different platforms and formats
+- **Limited Collaboration**: No easy way to share and run tools within teams
 
-These issues collectively hinder both individual productivity and organizational efficiency, highlighting the urgent need for a robust, privacy-preserving, and user-friendly alternative.
+LocalStore solves these problems by providing a **self-hosted, Python-based marketplace** that transforms any Python package into a one-click, browser-accessible web tool with built-in development capabilities.
 
 ---
 
-## Solution Overview: LocalStore
+## Overview
 
-**LocalStore** is a self-hosted, Python-based platform designed to unify the discovery, installation, and execution of open-source tools as local web applications. It directly addresses the aforementioned challenges through:
+LocalStore is a self-hosted platform that allows you to discover, install, and run Python-based web tools locally. It provides a unified marketplace interface where you can browse available tools, install them with one click, and run them as local web applications. The platform also includes powerful development features, allowing you to modify and extend tools directly within the interface.
 
-- **A Curated, Ad-Free Marketplace:** Browse, install, and run tools without exposure to ads or tracking.
-- **One-Click Deployment:** Distributed as a single executable, LocalStore abstracts away complex environment setup.
-- **Custom Local Domains:** Access tools via memorable, bookmarkable addresses (e.g., `toolname.localstore`) using local DNS resolution.
-- **Integrated AI Capabilities:** Seamlessly leverage both local AI models and external APIs, with user-controlled privacy settings.
-- **Network Discovery and Sharing:** Effortlessly share tools across a local network, with granular public/private access controls.
-- **Source Code Transparency & Sandboxing:** Inspect tool code before installation and run each tool in isolated environments for maximum security.
-- **Developer Extensibility:** Contribute new tools via a standardized plugin interface, fostering a sustainable and innovative ecosystem.
-
----
-
-## Key Features
-
-- **Curated Marketplace:** Web-based interface for browsing and installing open-source Python tools, complete with descriptions and source links.
-- **One-Click Installation:** Single executable bundles Python, dependencies, and a web server—no manual setup required.
-- **Local Web Applications:** Tools run as web apps, accessible via custom domains (e.g., `toolname.localstore`).
-- **AI Integration:** Supports both local AI models (e.g., Whisper) and external APIs (e.g., xAI’s Grok), configurable per user or tool.
-- **Network Sharing:** Discover and share tools within your local network, with configurable access.
-- **Security and Transparency:** All tools are open-source and run in sandboxed environments (Python venv or Docker).
-- **Extensibility:** Developers can submit new tools, specifying AI requirements and metadata for seamless integration.
+**Key Benefits:**
+- **Self-Hosted**: Complete control over your tools and data
+- **One-Click Installation**: Automated dependency management and environment setup
+- **Local Execution**: Tools run on your machine, ensuring privacy and performance
+- **Development Mode**: Built-in code editor and development tools
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Modern UI**: Clean, responsive interface built with Preact and TypeScript
+- **Zero Lock-in**: Tools are just FastAPI or Flask apps with an entry in registry.json
 
 ---
 
-## Technical Architecture
+## Features
 
-| Component           | Description                                                                                       |
-|---------------------|---------------------------------------------------------------------------------------------------|
-| **Core Framework**  | Built on Flask (or FastAPI), providing a lightweight, extensible web server and API endpoints.    |
-| **Database**        | Uses SQLite to store tool metadata and network device information.                                |
-| **Distribution**    | Packaged as a single executable (PyInstaller/web2py), including Python 3.x and all dependencies.  |
-| **Frontend**        | Jinja2 templates with Tailwind CSS for responsive, modern UI.                                     |
-| **Local DNS**       | Configures dnsmasq or dnslib for `.localstore` domain resolution, enabling custom local domains.   |
-| **AI Integration**  | Supports local models (e.g., faster-whisper) and external APIs, with secure key management.       |
-| **Network Discovery** | Uses zeroconf (Bonjour) for automatic detection and sharing of tools within the local network.   |
-| **Security**        | Source code transparency, sandboxed execution, and optional checksums for tool authenticity.      |
+### User Features
+- **Marketplace**: Browse and search available tools with descriptions and metadata
+- **Tool Management**: Install, uninstall, start, and stop tools with simple controls
+- **Status Monitoring**: Real-time tool status and port information
+- **Search & Filtering**: Find tools by name, ID, or description
+- **Responsive Design**: Modern UI that works on desktop and mobile browsers
+- **Desktop App**: Optional Electron wrapper for native desktop experience
 
----
-
-## Installation Guide
-
-### Prerequisites
-
-- **Operating System:** Windows, macOS, or Linux
-- **Hardware:** 4GB RAM, 2-core CPU (GPU recommended for AI tasks)
-- **Browser:** Modern browser (e.g., Chrome, Firefox)
-
-### Steps
-
-1. **Download:** Obtain the appropriate LocalStore executable for your OS.
-2. **Run:** Launch the executable. LocalStore initializes its web server, database, and DNS resolver.
-3. **Access:** Open your browser to `http://localstore.local` to access the marketplace.
-4. **Install Tools:** Browse, inspect source code, and install tools with a single click.
-5. **Configure AI (Optional):** Enter API keys or enable local models in the settings page.
-6. **Network Setup (Optional):** Enable network discovery for collaborative tool sharing.
-
-*Note: Local DNS setup may require administrative privileges.*
+### Developer Features
+- **Code Editor**: Built-in Monaco editor for viewing and editing tool source code
+- **File Management**: Browse and edit tool files directly in the interface
+- **Live Logs**: Real-time log streaming for running tools
+- **Git Integration**: Automatic Git repository initialization for development workspaces
+- **AI-Assisted Development**: Chat-based code modification (MVP implementation)
+- **Process Management**: Automatic port allocation and process lifecycle management
+- **Virtual Environments**: Each tool runs in its own isolated Python environment
 
 ---
 
-## Usage Instructions
+## Quick Start
 
-- **Marketplace:** Browse available tools at `http://localstore.local`. Use the “View Code” option for transparency.
-- **Tool Execution:** Access installed tools via `toolname.localstore` in your browser.
-- **Network Sharing:** Use the “Network” tab to see and share tools across devices on your local network.
-- **AI Configuration:** Manage AI settings per tool or globally in the settings page.
+### 1. Install Dependencies
+```bash
+npm run setup
+```
+
+This command will:
+- Install all Node.js dependencies for backend, frontend, and Electron
+- Install Python dependencies
+- Build the frontend application
+
+**If you don't have a setup script yet, run:**
+```bash
+npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt
+```
+
+### 2. Run the Application
+
+#### Option A: Web Only (Recommended for development)
+```bash
+npm run dev
+```
+
+This starts both the backend (Flask) and frontend (Vite dev server) concurrently.
+
+#### Option B: Desktop App
+```bash
+npm run electron
+```
+
+This launches the Electron app which spawns the backend and opens a desktop window.
+
+#### Option C: Windows Batch File
+```bash
+run.bat
+```
+
+Simple Windows batch file that starts the development servers.
+
+### 3. Access the Application
+- **Web**: http://localhost:3000 (frontend) + http://localhost:8000 (backend API)
+- **Desktop**: Electron window pointing to http://127.0.0.1:8000
 
 ---
 
-## Security and Privacy Considerations
+## Project Structure
 
-- **Source Code Transparency:** Every tool provides direct access to its source code for inspection.
-- **Sandboxed Execution:** Tools run in isolated Python environments or Docker containers, minimizing risk from untrusted code.
-- **Local Data Processing:** All operations are performed locally unless explicitly configured to use external APIs.
-- **Access Controls:** Public/private settings for tools, with authentication for network-shared resources.
-- **Administrative Privileges:** Required for DNS configuration—users should review security implications before installation.
+```
+localstore/
+├── backend/                 # Flask API server
+│   ├── app.py              # Main Flask application
+│   ├── dev_api.py          # Development mode API endpoints
+│   ├── install.py          # Tool installation logic
+│   ├── proc.py             # Process management
+│   ├── registry.json       # Available tools registry
+│   ├── requirements.txt    # Python dependencies
+│   └── data/               # Runtime data and state
+│       └── install_state.json  # Persistent installation state
+├── frontend/                # Preact + TypeScript frontend
+│   ├── src/                # Source code
+│   │   ├── components/     # UI components
+│   │   ├── pages/          # Page components
+│   │   └── api.ts          # API client
+│   ├── dist/               # Built files (generated)
+│   └── package.json        # Frontend dependencies
+├── electron/                # Desktop shell (optional)
+│   ├── main.js             # Electron main process
+│   └── package.json        # Electron dependencies
+├── examples/                # Sample tools
+│   └── hello-fapi/         # FastAPI demo tool
+├── tools/                   # Installed tools (generated)
+└── package.json             # Root scripts and dependencies
+```
 
 ---
 
-## Extensibility and Community Contributions
+## Development
 
-- **Developer Workflow:**
-  1. Create a Python module with a standard interface (e.g., `run()` function and metadata JSON).
-  2. Submit your tool to the LocalStore repository for review and inclusion.
-  3. Define AI requirements and dependencies in the tool’s metadata.
+### Backend (Flask)
+- **Port**: 8000
+- **API Endpoints**: RESTful API for tool management and development
+- **Run**: `npm run backend`
+- **Features**: Process management, virtual environment handling, file operations
 
-- **Plugin Architecture:** Enables seamless integration of community-contributed tools, fostering a vibrant ecosystem.
+### Frontend (Preact + Vite)
+- **Port**: 3000 (dev), 8000 (production via backend)
+- **Build**: `npm run build`
+- **Dev**: `npm run frontend`
+- **Framework**: Preact with TypeScript for modern, lightweight UI
+
+### Electron (Desktop)
+- **Run**: `npm run electron`
+- **Note**: Requires backend to be running first
+- **Purpose**: Provides native desktop experience
 
 ---
 
-## Limitations and Future Directions
+## Tool Development
 
-| Limitation           | Description                                                                                       |
-|----------------------|---------------------------------------------------------------------------------------------------|
-| **DNS Setup**        | Local domain resolution requires admin privileges and may conflict with existing configurations.   |
-| **AI Performance**   | Local AI models demand adequate hardware (GPU recommended).                                       |
-| **Network Scope**    | Sharing is limited to local networks; WAN support is not included by default.                     |
-| **Ecosystem Growth** | Marketplace depends on ongoing community contributions for tool diversity and quality.            |
+### Creating a Tool
+**Tools are just FastAPI or Flask apps with an entry in registry.json.** No special frameworks or lock-in required.
 
-**Planned Enhancements:**
-- Full Docker integration for enhanced sandboxing.
-- Broader AI model support and improved API integration.
-- Dynamic marketplace expansion via GitHub APIs.
-- Improved mobile browser support and automated setup scripts.
+```python
+# app.py
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"hello": "world"}
+
+@app.get("/ping")
+def ping():
+    return {"pong": True}
+```
+
+### Tool Metadata
+Tools are registered in `backend/registry.json`:
+
+```json
+{
+  "id": "hello-fapi",
+  "name": "Hello FastAPI",
+  "description": "Tiny demo tool",
+  "path": "examples/hello-fapi",
+  "entry": "app:app"
+}
+```
+
+### Development Workflow
+1. **Install**: Tools are automatically installed with dependencies
+2. **Fork**: Create a development workspace for modifications
+3. **Edit**: Use the built-in code editor to modify files
+4. **Run**: Start/stop the tool and view live logs
+5. **Deploy**: Changes are applied to the running tool
+
+---
+
+## API Reference
+
+### Core Endpoints
+- `GET /api/health` - Health check
+- `GET /api/registry` - List available tools
+- `GET /api/tools` - List installed tools
+- `POST /api/tools/install` - Install a tool
+- `POST /api/tools/{id}/start` - Start a tool
+- `POST /api/tools/{id}/stop` - Stop a tool
+- `DELETE /api/tools/{id}` - Uninstall a tool
+
+### Development Endpoints
+- `POST /api/dev/{id}/fork` - Create development workspace
+- `GET /api/dev/{id}/files` - List workspace files
+- `GET /api/dev/{id}/file` - Read file content
+- `POST /api/dev/{id}/file` - Write file content
+- `POST /api/dev/{id}/patch` - Apply code patches
+- `GET /api/dev/{id}/logs` - Stream tool logs
+- `POST /api/dev/{id}/chat` - AI-assisted code modification (stub MVP)
+
+### Tool Proxy
+- `GET /api/apps/{id}/*` - Proxy requests to running tools
+
+---
+
+## Requirements
+
+### System Requirements
+- **Node.js**: 18+ 
+- **Python**: 3.8+ (with pip)
+- **Operating System**: Windows 11, macOS, or Linux
+- **Memory**: 4GB RAM recommended
+- **Storage**: 2GB free space for tools and dependencies
+
+### Python Dependencies
+- Flask 2.3.3+
+- Flask-CORS 4.0.0+
+- uvicorn (for FastAPI tools)
+
+### Browser Support
+- Modern browsers with ES6+ support
+- Chrome, Firefox, Safari, Edge
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Python not found
+- **Windows**: Ensure Python is in PATH or use `python` command
+- **WSL2**: Use `python3` command
+- **Solution**: Install Python from https://python.org
+
+#### Port conflicts
+- **Backend**: Uses port 8000
+- **Frontend dev**: Uses port 3000
+- **Solution**: Change ports in respective config files if needed
+
+#### Build issues
+- **Dependencies**: Run `npm run install-all` to ensure all dependencies are installed
+- **Node version**: Check Node.js version compatibility
+- **Python venv**: Ensure virtual environments can be created
+
+#### Tool installation failures
+- **Dependencies**: Check tool requirements.txt files
+- **Permissions**: Ensure write access to tools directory
+- **Network**: Verify internet connection for pip installations
+
+### Getting Help
+- Check the application logs in the browser console
+- Review backend logs in the terminal
+- Verify tool registry and installation state
+- Ensure all dependencies are properly installed
+
+---
+
+## Contributing
+
+LocalStore is designed to be extensible. You can contribute by:
+
+1. **Adding Tools**: Create new Python tools and submit them to the registry
+2. **Improving UI**: Enhance the frontend components and user experience
+3. **Backend Features**: Extend the Flask API with new capabilities
+4. **Documentation**: Improve this README and add tool documentation
+
+### Development Setup
+1. Fork the repository
+2. Install dependencies with `npm run setup`
+3. Make your changes
+4. Test with `npm run dev`
+5. Submit a pull request
 
 ---
 
