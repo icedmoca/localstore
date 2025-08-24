@@ -34,6 +34,8 @@ dev_bp.state = state
 dev_bp.runtime = runtime
 app.register_blueprint(dev_bp)
 
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True}
@@ -272,41 +274,7 @@ def check_auth():
 
 
 
-# Serve SPA - these must be AFTER all API routes to avoid conflicts
-@app.get('/')
-def spa_index():
-    print(f"SPA index called, static_folder: {app.static_folder}")
-    return send_from_directory(app.static_folder, 'index.html')
 
-@app.get('/<path:path>')
-def spa_catchall(path):
-    print(f"SPA catchall called with path: {path}")
-    # Don't handle API routes
-    if path.startswith('api/'):
-        return jsonify({'error': 'Not Found'}), 404
-    
-    # Check if the file exists (for assets)
-    file_path = Path(app.static_folder) / path
-    print(f"Looking for file: {file_path}")
-    if file_path.exists() and file_path.is_file():
-        return send_from_directory(app.static_folder, path)
-    
-    # Fallback to SPA for client-side routing
-    return send_from_directory(app.static_folder, 'index.html')
-
-# On boot, start autostart tools
-if __name__ == "__main__":
-    for t in state.list_installed():
-        if t.get('autostart'):
-            try:
-                runtime.start_uvicorn(t['id'], Path(t['venv']), Path(t['path']), t['entry'])
-            except Exception as e:
-                print(f"Failed to autostart {t['id']}: {e}")
-    
-    # Production vs development mode
-    debug_mode = os.getenv('FLASK_DEBUG', '1') == '1'
-    # Don't use reloader in debug mode as it breaks streaming generators
-    app.run(host="127.0.0.1", port=8000, debug=debug_mode, use_reloader=False)
 
 # SSE logs for running process
 @app.get("/api/tools/<tool_id>/logs")
@@ -375,19 +343,16 @@ def proxy(tool_id: str, subpath: str):
     req_body = request.get_data() if req_method in ("POST","PUT","PATCH") else None
 
     try:
-        with httpx.stream(
+        # Use regular request instead of stream for better compatibility
+        r = httpx.request(
             req_method, target_url, headers=req_headers, content=req_body, follow_redirects=True, timeout=30.0
-        ) as r:
-
-            def generate():
-                for chunk in r.iter_bytes():
-                    if chunk:
-                        yield chunk
-
-            # Filter response headers
-            blocked = {"connection","transfer-encoding","content-encoding","server"}
-            resp_headers = [(k, v) for k, v in r.headers.items() if k.lower() not in blocked]
-            return Response(generate(), status=r.status_code, headers=resp_headers)
+        )
+        
+        # Filter response headers
+        blocked = {"connection","transfer-encoding","content-encoding","server"}
+        resp_headers = [(k, v) for k, v in r.headers.items() if k.lower() not in blocked]
+        
+        return Response(r.content, status=r.status_code, headers=resp_headers)
     except httpx.RequestError as e:
         return jsonify({"error": f"proxy error: {e}"}), 502
 
@@ -400,8 +365,6 @@ def install_tool_legacy(tool_id):
 def uninstall_tool_legacy(tool_id):
     return uninstall_tool(tool_id)
 
-
-
 # Serve SPA - these must be AFTER all API routes to avoid conflicts
 @app.get('/')
 def spa_index():
@@ -410,14 +373,12 @@ def spa_index():
 
 @app.get('/<path:path>')
 def spa_catchall(path):
-    print(f"SPA catchall called with path: {path}")
     # Don't handle API routes
     if path.startswith('api/'):
         return jsonify({'error': 'Not Found'}), 404
     
     # Check if the file exists (for assets)
     file_path = Path(app.static_folder) / path
-    print(f"Looking for file: {file_path}")
     if file_path.exists() and file_path.is_file():
         return send_from_directory(app.static_folder, path)
     
@@ -430,3 +391,17 @@ def on_error(e):
     code = getattr(e, "code", 500)
     msg = str(e) if code < 500 else "internal error"
     return jsonify({"error": msg}), code
+
+# On boot, start autostart tools
+if __name__ == "__main__":
+    for t in state.list_installed():
+        if t.get('autostart'):
+            try:
+                runtime.start_uvicorn(t['id'], Path(t['venv']), Path(t['path']), t['entry'])
+            except Exception as e:
+                print(f"Failed to autostart {t['id']}: {e}")
+    
+    # Production vs development mode
+    debug_mode = os.getenv('FLASK_DEBUG', '1') == '1'
+    # Don't use reloader in debug mode as it breaks streaming generators
+    app.run(host="127.0.0.1", port=8000, debug=debug_mode, use_reloader=False)
