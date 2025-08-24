@@ -58,7 +58,7 @@ The Python ecosystem is fragmented with tools scattered across different platfor
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/localstore.git
+   git clone https://github.com/icedmoca/localstore.git
    cd localstore
    ```
 

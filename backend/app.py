@@ -296,6 +296,25 @@ def logs(tool_id: str):
 
     return Response(gen(), mimetype="text/event-stream")
 
+# Serve SPA - move these BEFORE the proxy routes to avoid conflicts
+@app.get('/')
+def spa_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.get('/<path:path>')
+def spa_catchall(path):
+    # Don't handle API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not Found'}), 404
+    
+    # Check if the file exists (for assets)
+    file_path = Path(app.static_folder) / path
+    if file_path.exists() and file_path.is_file():
+        return send_from_directory(app.static_folder, path)
+    
+    # Fallback to SPA for client-side routing
+    return send_from_directory(app.static_folder, 'index.html')
+
 # Reverse proxy for running tools
 @app.route("/api/apps/<tool_id>/", defaults={"path": ""}, methods=["GET","POST","PUT","PATCH","DELETE"])
 @app.route("/api/apps/<tool_id>/<path:path>", methods=["GET","POST","PUT","PATCH","DELETE"])
@@ -348,24 +367,7 @@ def install_tool_legacy(tool_id):
 def uninstall_tool_legacy(tool_id):
     return uninstall_tool(tool_id)
 
-# Serve SPA
-@app.get('/')
-def spa_index():
-    return send_from_directory(app.static_folder, 'index.html')
 
-@app.get('/<path:path>')
-def spa_catchall(path):
-    # Don't handle API routes
-    if path.startswith('api/'):
-        return jsonify({'error': 'Not Found'}), 404
-    
-    # Check if the file exists (for assets)
-    file_path = Path(app.static_folder) / path
-    if file_path.exists() and file_path.is_file():
-        return send_from_directory(app.static_folder, path)
-    
-    # Fallback to SPA for client-side routing
-    return send_from_directory(app.static_folder, 'index.html')
 
 # Global error handler
 @app.errorhandler(Exception)
