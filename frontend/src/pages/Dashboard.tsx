@@ -22,7 +22,7 @@ export default function Dashboard({ tools, onRefresh, onAddTool, darkTheme }: Da
 
   async function loadTools() {
     try {
-      const data = await api.get('/api/tools')
+      const data = await api.tools()
       setLocalTools(data)
     } catch (error) {
       console.error('Failed to load tools:', error)

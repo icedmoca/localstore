@@ -11,6 +11,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },

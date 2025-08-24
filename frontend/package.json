@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 4173",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "e2e": "playwright test"
@@ -17,7 +18,7 @@
     "@blueprintjs/popover2": "^2.0.12",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
-    "@vitejs/plugin-react": "^5.0.1",
+    "@preact/preset-vite": "^2.8.0",
     "monaco-editor": "^0.52.2",
     "normalize.css": "^8.0.1",
     "react": "^18.3.1",

@@ -16,7 +16,18 @@ async function j(url:string, init?:RequestInit){
 
 export default function DevMode(){
   const [match, params] = useRoute('/dev/:id')
-  const toolId = params?.id
+  // @ts-ignore - params can be null but we handle it gracefully
+  const toolId = params?.id ?? ''
+  if (!toolId) {
+    return (
+      <NonIdealState
+        icon="folder-open"
+        title="Select a Tool for Development"
+        description="Choose a tool from the Installed tab to start developing"
+        action={<Link href="/installed"><Button intent="primary" text="Go to Installed Tools" /></Link>}
+      />
+    )
+  }
   const [files, setFiles] = useState<FileNode | null>(null)
   const [current, setCurrent] = useState<string>('')
   const [treeData, setTreeData] = useState<TreeNodeInfo[]>([])

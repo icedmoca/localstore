@@ -15,15 +15,15 @@ from state_json import AtomicJSONState
 from install import ensure_tool_installed
 from proc import ProcManager, venv_python
 
-app = Flask(__name__, static_folder='static', static_url_path='')
-CORS(app, origins="*")
-
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 DATA = BACKEND / "data"; DATA.mkdir(exist_ok=True)
 TOOLS_DIR = ROOT / "tools"; TOOLS_DIR.mkdir(exist_ok=True)
 REGISTRY_PATH = BACKEND / "registry.json"
 STATE_PATH = DATA / "install_state.json"
+
+app = Flask(__name__, static_folder=str(ROOT / 'backend' / 'static'), static_url_path='')
+CORS(app, origins="*")
 
 state = AtomicJSONState(STATE_PATH)
 runtime = ProcManager()
@@ -266,6 +266,30 @@ def check_auth():
     if request.headers.get("Authorization") != f"Bearer {API_KEY}":
         return jsonify({"error": "Unauthorized"}), 401
 
+
+
+# Serve SPA - these must be AFTER all API routes to avoid conflicts
+@app.get('/')
+def spa_index():
+    print(f"SPA index called, static_folder: {app.static_folder}")
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.get('/<path:path>')
+def spa_catchall(path):
+    print(f"SPA catchall called with path: {path}")
+    # Don't handle API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not Found'}), 404
+    
+    # Check if the file exists (for assets)
+    file_path = Path(app.static_folder) / path
+    print(f"Looking for file: {file_path}")
+    if file_path.exists() and file_path.is_file():
+        return send_from_directory(app.static_folder, path)
+    
+    # Fallback to SPA for client-side routing
+    return send_from_directory(app.static_folder, 'index.html')
+
 # On boot, start autostart tools
 if __name__ == "__main__":
     for t in state.list_installed():
@@ -302,25 +326,6 @@ def logs(tool_id: str):
             yield f'data: {{"event":"log","line":{json.dumps(txt)}}}\n\n'
 
     return Response(gen(), mimetype="text/event-stream")
-
-# Serve SPA - move these BEFORE the proxy routes to avoid conflicts
-@app.get('/')
-def spa_index():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.get('/<path:path>')
-def spa_catchall(path):
-    # Don't handle API routes
-    if path.startswith('api/'):
-        return jsonify({'error': 'Not Found'}), 404
-    
-    # Check if the file exists (for assets)
-    file_path = Path(app.static_folder) / path
-    if file_path.exists() and file_path.is_file():
-        return send_from_directory(app.static_folder, path)
-    
-    # Fallback to SPA for client-side routing
-    return send_from_directory(app.static_folder, 'index.html')
 
 # Reverse proxy for running tools
 ALLOWED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
@@ -391,6 +396,28 @@ def uninstall_tool_legacy(tool_id):
     return uninstall_tool(tool_id)
 
 
+
+# Serve SPA - these must be AFTER all API routes to avoid conflicts
+@app.get('/')
+def spa_index():
+    print(f"SPA index called, static_folder: {app.static_folder}")
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.get('/<path:path>')
+def spa_catchall(path):
+    print(f"SPA catchall called with path: {path}")
+    # Don't handle API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not Found'}), 404
+    
+    # Check if the file exists (for assets)
+    file_path = Path(app.static_folder) / path
+    print(f"Looking for file: {file_path}")
+    if file_path.exists() and file_path.is_file():
+        return send_from_directory(app.static_folder, path)
+    
+    # Fallback to SPA for client-side routing
+    return send_from_directory(app.static_folder, 'index.html')
 
 # Global error handler
 @app.errorhandler(Exception)
