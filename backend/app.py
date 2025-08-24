@@ -303,10 +303,22 @@ def proxy(tool_id: str, path: str):
     is_dev = tool_id.startswith("dev-")
     actual_id = tool_id[4:] if is_dev else tool_id
     t = state.get(actual_id)
-    if not t or not t.get("port"):
+    
+    # Debug logging
+    print(f"Proxy request for {tool_id} -> {actual_id}, path: {path}")
+    print(f"Tool state: {t}")
+    
+    if not t:
+        print(f"Tool {actual_id} not found in state")
+        return jsonify({"error": "tool not found"}), 404
+    
+    if not t.get("port"):
+        print(f"Tool {actual_id} has no port: {t}")
         return jsonify({"error": "tool not running"}), 404
 
     target = f"http://127.0.0.1:{t['port']}/{path}"
+    print(f"Proxying to: {target}")
+    
     headers = {k: v for k, v in request.headers if k.lower() != "host"}
     body = request.get_data()
 
