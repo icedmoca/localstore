@@ -4,8 +4,8 @@
       "id": "hello-fapi",
       "name": "Hello FastAPI",
       "description": "Simple FastAPI example application",
-      "status": "stopped",
-      "port": null,
+      "status": "running",
+      "port": 60095,
       "path": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi",
       "venv": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi/.venv",
       "entry": "app:app"

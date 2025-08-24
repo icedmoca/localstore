@@ -320,8 +320,7 @@ def _filtered_request_headers(h):
     }
     return {k: v for k, v in h.items() if k.lower() not in hop_by_hop}
 
-@app.route("/api/apps/<tool_id>", defaults={"subpath": ""}, methods=ALLOWED_METHODS)
-@app.route("/api/apps/<tool_id>/", defaults={"subpath": ""}, methods=ALLOWED_METHODS)
+@app.route("/api/apps/<tool_id>", defaults={"subpath": ""}, methods=ALLOWED_METHODS, strict_slashes=False)
 @app.route("/api/apps/<tool_id>/<path:subpath>", methods=ALLOWED_METHODS)
 def proxy(tool_id: str, subpath: str):
     is_dev = tool_id.startswith("dev-")
