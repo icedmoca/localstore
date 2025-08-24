@@ -104,7 +104,7 @@ echo "[autostart toggle]";
 retry_cmd "curl -fsS -X PATCH '$BASE/api/tools/$ID' -H 'content-type: application/json' -d '{\"autostart\":true}' | tee /dev/stderr | grep -q '\"ok\":true'"
 
 echo "[runtimes list]"; 
-retry_cmd "curl -fsS '$BASE/api/runtimes' | tee /dev/stderr | grep -q '\"version\":"'
+retry_cmd "curl -fsS '$BASE/api/runtimes' | tee /dev/stderr | grep -q '\"version\":'"
 
 echo "[uninstall]"; 
 retry_cmd "curl -fsS -X DELETE '$BASE/api/tools/$ID' | tee /dev/stderr | grep -q '\"ok\":true'"
