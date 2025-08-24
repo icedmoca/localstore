@@ -38,9 +38,9 @@ retry_cmd() {
 # Wait for backend
 wait_for_backend
 
-echo "[health]"; curl -fsS "$BASE/api/health" | grep -q '"ok":true'
+echo "[health]"; curl -fsS "$BASE/api/health" | grep -q '"ok": *true'
 
-echo "[registry]"; curl -fsS "$BASE/api/registry" | tee /dev/stderr | grep -q '"id":"hello-fapi"'
+echo "[registry]"; curl -fsS "$BASE/api/registry" | tee /dev/stderr | grep -q '"id": *"hello-fapi"'
 
 echo "[clean slate]"; 
 tools_result=$(curl -fsS "$BASE/api/tools")

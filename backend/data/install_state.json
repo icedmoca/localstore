@@ -1,3 +1,14 @@
 {
-  "installed": {}
+  "installed": {
+    "hello-fapi": {
+      "id": "hello-fapi",
+      "name": "Hello FastAPI",
+      "description": "Simple FastAPI example application",
+      "status": "stopped",
+      "port": null,
+      "path": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi",
+      "venv": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi/.venv",
+      "entry": "app:app"
+    }
+  }
 }

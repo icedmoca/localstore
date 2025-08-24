@@ -120,6 +120,10 @@ def delete_tool(tool_id: str):
     state.remove(tool_id)
     return jsonify({"ok": True})
 
+def uninstall_tool(tool_id: str):
+    """Alias for delete_tool for legacy compatibility"""
+    return delete_tool(tool_id)
+
 # Creation
 @app.post("/api/tools/create/folder")
 def create_folder():
@@ -348,6 +352,7 @@ def _filtered_request_headers(h):
     }
     return {k: v for k, v in h.items() if k.lower() not in hop_by_hop}
 
+@app.route("/api/apps/<tool_id>", defaults={"subpath": ""}, methods=ALLOWED_METHODS)
 @app.route("/api/apps/<tool_id>/", defaults={"subpath": ""}, methods=ALLOWED_METHODS)
 @app.route("/api/apps/<tool_id>/<path:subpath>", methods=ALLOWED_METHODS)
 def proxy(tool_id: str, subpath: str):
