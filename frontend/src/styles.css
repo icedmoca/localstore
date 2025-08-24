@@ -1,3 +1,13 @@
+/* Berkeley Mono TX Font */
+@font-face {
+  font-family: 'Berkeley Mono TX';
+  src: url('/fonts/TX-03-Regular.woff2') format('woff2'),
+       url('/fonts/TX-03-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #ffffff;
   --fg: #111827;
@@ -7,6 +17,7 @@
   --accent: #2563eb;
   --accent-fg: #ffffff;
   --shadow: 0 8px 24px rgba(0,0,0,0.06);
+  --font-family: 'Berkeley Mono TX', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
 }
 
 [data-theme="dark"] {
@@ -20,11 +31,165 @@
   --shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
-* { box-sizing: border-box; }
+/* Blueprint v5 Dark Mode Overrides */
+.bp5-dark {
+  --bg: #0b0f17 !important;
+  --fg: #e5e7eb !important;
+  --muted: #9ca3af !important;
+  --card: #0f1521 !important;
+  --border: #1f2937 !important;
+  --accent: #3b82f6 !important;
+  --accent-fg: #0b0f17 !important;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+}
+
+/* Ensure dark mode applies to all elements */
+.bp5-dark * {
+  color: var(--fg) !important;
+}
+
+/* Dark mode specific component overrides */
+.bp5-dark .bp5-navbar {
+  background-color: var(--card) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-tab {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-tab[aria-selected="true"] {
+  color: var(--accent) !important;
+}
+
+.bp5-dark .bp5-card {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-button {
+  background-color: var(--card) !important;
+  color: var(--fg) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-button.bp5-intent-primary {
+  background-color: var(--accent) !important;
+  color: var(--accent-fg) !important;
+}
+
+.bp5-dark .bp5-input {
+  background-color: var(--card) !important;
+  color: var(--fg) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-form-group label {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-dialog {
+  background-color: var(--card) !important;
+}
+
+.bp5-dark .bp5-dialog-header {
+  background-color: var(--card) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-dialog-body {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-toast {
+  background-color: var(--card) !important;
+  color: var(--fg) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Root container dark mode */
+.bp5-dark {
+  background-color: var(--bg) !important;
+  color: var(--fg) !important;
+}
+
+/* Ensure dark mode applies to html and body */
+.bp5-dark html,
+.bp5-dark body {
+  background-color: var(--bg) !important;
+  color: var(--fg) !important;
+}
+
+/* Dark mode scrollbar styling */
+.bp5-dark ::-webkit-scrollbar {
+  width: 12px;
+}
+
+.bp5-dark ::-webkit-scrollbar-track {
+  background: var(--card);
+}
+
+.bp5-dark ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
+}
+
+.bp5-dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Additional dark mode overrides for specific elements */
+.bp5-dark .bp5-switch {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-switch .bp5-control-indicator {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-switch.bp5-checked .bp5-control-indicator {
+  background-color: var(--accent) !important;
+}
+
+.bp5-dark .bp5-tabs .bp5-tab-list {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-tab-panel {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-menu {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bp5-dark .bp5-menu-item {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-menu-item:hover {
+  background-color: var(--border) !important;
+}
+
+.bp5-dark .bp5-tree-node-content {
+  color: var(--fg) !important;
+}
+
+.bp5-dark .bp5-tree-node-content:hover {
+  background-color: var(--border) !important;
+}
+
+* { 
+  box-sizing: border-box; 
+  font-family: var(--font-family) !important;
+}
+
 html, body, #root { height: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--font-family);
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -99,6 +264,81 @@ a:hover { text-decoration: underline; }
 .skeleton { border-radius: 10px; background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.08), rgba(0,0,0,0.05)); animation: pulse 1.2s infinite; height: 120px; }
 @keyframes pulse { 0%{opacity:.7} 50%{opacity:1} 100%{opacity:.7} }
 
+/* Ensure Blueprint components use Berkeley Mono TX font */
+.bp5-* {
+  font-family: var(--font-family) !important;
+}
+
+/* Override specific Blueprint text elements */
+.bp5-navbar-heading,
+.bp5-tab,
+.bp5-button,
+.bp5-input,
+.bp5-form-group label,
+.bp5-card,
+.bp5-dialog,
+.bp5-toast {
+  font-family: var(--font-family) !important;
+}
+
+/* Ensure monospace consistency for code elements */
+code, pre, .monospace {
+  font-family: var(--font-family) !important;
+}
+
+/* Optimize Berkeley Mono TX font rendering */
+body, html {
+  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Adjust line heights for monospace font */
+p, div, span {
+  line-height: 1.6;
+}
+
+/* Optimize button and input text rendering */
+.bp5-button, .bp5-input, .bp5-navbar-heading {
+  font-feature-settings: "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Berkeley Mono TX font utility class */
+.berkeley-mono {
+  font-family: var(--font-family) !important;
+  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ensure all headings use the font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family) !important;
+  font-weight: 600;
+}
+
+/* Dashboard create tool card dark mode compatibility */
+.bp5-dark .create-tool-card {
+  border-color: var(--accent) !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+.bp5-dark .create-tool-card:hover {
+  border-color: #1d4ed8 !important;
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.bp5-dark .create-tool-card .create-tool-icon,
+.bp5-dark .create-tool-card .create-tool-title {
+  color: var(--accent) !important;
+}
+
+.bp5-dark .create-tool-card .create-tool-description {
+  color: var(--muted) !important;
+}
+@keyframes fadeIn { 0%{opacity:0; transform: translateY(10px)} 100%{opacity:1; transform: translateY(0)} }
+
 .toast {
   position: fixed; bottom: 16px; right: 16px; z-index: 100;
   display: grid; gap: 8px; max-width: 360px;
@@ -107,3 +347,6 @@ a:hover { text-decoration: underline; }
   background: var(--card); color: var(--fg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow);
   font-size: 14px;
 }
+
+
+/* Remove conflicting font rule - Berkeley Mono TX is already applied globally */

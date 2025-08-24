@@ -2,7 +2,9 @@
   {
     "id": "hello-fapi",
     "name": "Hello FastAPI",
-    "description": "Tiny demo tool",
+    "description": "Simple FastAPI example application",
+    "version": "1.0.0",
+    "author": "LocalStore",
     "path": "examples/hello-fapi",
     "entry": "app:app"
   }

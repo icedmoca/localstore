@@ -14,9 +14,22 @@ pip-delete-this-directory.txt
 # Build outputs
 frontend/dist/
 frontend/build/
+backend/static/
 *.egg-info/
 dist/
 build/
+
+# Vite timestamp files
+frontend/vite.config.ts.timestamp-*.mjs
+
+# Python virtual environments
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+
+# Duplicate directories
+backend/backend/
 
 # Environment variables
 .env

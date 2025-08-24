@@ -4,13 +4,11 @@
   "description": "Local tool store with development capabilities",
   "main": "index.js",
   "scripts": {
-    "backend": "cd backend && python3 app.py",
+    "backend": "cd backend && (./.venv/bin/python app.py || python3 app.py || python app.py)",
     "frontend": "cd frontend && vite --host",
-    "dev": "concurrently -k -n back,front -c blue,magenta \"npm:backend\" \"npm:frontend\"",
-    "build": "cd frontend && npm run build",
-    "electron": "cd electron && npm start",
-    "install-all": "npm install && cd frontend && npm install && cd ../electron && npm install",
-    "setup": "npm run install-all && npm run build",
+    "dev": "concurrently -k -n back,front -c blue,magenta \"npm run backend\" \"npm run frontend\"",
+    "build": "cd frontend && npm ci && npm run build",
+    "prod": "npm run build && cd backend && PYTHONUNBUFFERED=1 FLASK_DEBUG=0 (./.venv/bin/python app.py || python3 app.py || python app.py)",
     "test:contract": "bash backend/contract_test.sh"
   },
   "keywords": [],

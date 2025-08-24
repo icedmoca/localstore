@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'preact/hooks'
+import { useEffect, useRef } from 'react'
 import * as monaco from 'monaco-editor'
 
 export default function Editor({ value, language, onChange }: { value: string; language?: string; onChange?: (v:string)=>void }) {

@@ -28,7 +28,6 @@ def ensure_tool_installed(tool_id: str, meta: dict, tools_dir: Path) -> dict:
     if req.exists():
         subprocess.check_call([str(pip), "install", "-r", str(req)])
     else:
-        # attempt install package if setup/pyproject exists, otherwise ensure uvicorn present
         setup_py = dest / "setup.py"
         pyproject = dest / "pyproject.toml"
         if setup_py.exists() or pyproject.exists():

@@ -2,6 +2,7 @@ from __future__ import annotations
 import os, signal, socket, subprocess, sys, time
 from pathlib import Path
 from typing import Dict, Optional
+import requests
 
 class ProcInfo:
     def __init__(self, popen: subprocess.Popen, port: int):
@@ -30,8 +31,22 @@ class ProcManager:
         popen = subprocess.Popen(
             cmd, cwd=str(workdir), stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
-        # small boot wait
-        time.sleep(0.6)
+        # readiness wait: poll port
+        start_time = time.time()
+        while time.time() - start_time < 5:
+            try:
+                r = requests.get(f"http://{host}:{port}/ping", timeout=0.5)
+                if r.status_code == 200:
+                    break
+            except requests.exceptions.RequestException:
+                try:
+                    with socket.create_connection((host, port), timeout=0.5):
+                        break
+                except:
+                    time.sleep(0.5)
+        else:
+            popen.terminate()
+            raise RuntimeError(f"Failed to start uvicorn on port {port} within 5s")
         self.procs[tool_id] = ProcInfo(popen=popen, port=port)
         return port
 

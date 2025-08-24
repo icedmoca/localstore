@@ -7,28 +7,46 @@ import os
 import shutil
 import subprocess
 from typing import Dict, Any
+import time
 
 from dev_paths import dev_root, tool_workspace
+import venv
 
 # Create Flask blueprint
 dev_bp = Blueprint('dev', __name__, url_prefix='/api/dev')
 
 # These will be injected from app.py
-state = None  # type: ignore
-runtime = None  # type: ignore
+#state = None  # type: ignore
+#runtime = None  # type: ignore
 
 @dev_bp.route('/<tool_id>/fork', methods=['POST'])
 def fork_tool(tool_id: str):
-    tool = state.get(tool_id) if state else None
+    state = dev_bp.state
+    tool = state.get(tool_id)
     if not tool:
         return jsonify({"error": "Tool not installed"}), 404
     src = Path(tool['path']).resolve()
     dest = tool_workspace(tool_id)
     if dest.exists():
-        # keep existing workspace
         return jsonify({"ok": True, "path": str(dest)})
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(src, dest)
+    # Copy without .venv
+    ignore_venv = shutil.ignore_patterns('.venv')
+    shutil.copytree(src, dest, ignore=ignore_venv)
+    # Recreate fresh venv
+    venv_dir = dest / ".venv"
+    venv.EnvBuilder(with_pip=True).create(venv_dir)
+    pip = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
+    req = dest / "requirements.txt"
+    if req.exists():
+        subprocess.check_call([str(pip), "install", "-r", str(req)])
+    else:
+        setup_py = dest / "setup.py"
+        pyproject = dest / "pyproject.toml"
+        if setup_py.exists() or pyproject.exists():
+            subprocess.check_call([str(pip), "install", "."], cwd=str(dest))
+        else:
+            subprocess.check_call([str(pip), "install", "uvicorn"])
     # init git repo (optional)
     try:
         subprocess.check_call(["git", "init"], cwd=str(dest))
@@ -43,11 +61,16 @@ def list_files(tool_id: str):
     root = tool_workspace(tool_id)
     if not root.exists():
         return jsonify({"error": "No workspace; fork first"}), 404
-    out = []
-    for p in root.rglob('*'):
-        if p.is_file():
-            out.append({"path": str(p.relative_to(root))})
-    return jsonify(out)
+    def build_tree(path: Path) -> dict:
+        out = {'type': 'dir', 'name': path.name, 'children': []}
+        for p in path.iterdir():
+            if p.is_dir():
+                out['children'].append(build_tree(p))
+            else:
+                out['children'].append({'type': 'file', 'name': p.name, 'path': str(p.relative_to(root))})
+        return out
+    tree = build_tree(root)
+    return jsonify(tree)
 
 @dev_bp.route('/<tool_id>/file')
 def read_file(tool_id: str):
@@ -104,9 +127,31 @@ def apply_patch_api(tool_id: str):
         return jsonify({"error": "No workspace; fork first"}), 404
     
     try:
-        from patch_utils import apply_unified_diff
-        res = apply_unified_diff(root, patch_text)
-        return jsonify({"ok": True, "files": res})
+        from unidiff import PatchSet
+        patch = PatchSet.from_string(patch_text)
+        applied = []
+        for patched_file in patch:
+            rel_path = patched_file.path
+            target = (root / rel_path).resolve()
+            if not str(target).startswith(str(root.resolve())):
+                raise ValueError('Path traversal detected')
+            if patched_file.is_added_file:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(''.join(hunk.target_lines for hunk in patched_file), encoding='utf-8')
+            elif patched_file.is_removed_file:
+                if target.exists():
+                    target.unlink()
+            else:
+                with open(target, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                for hunk in patched_file:
+                    start = hunk.target_start - 1
+                    end = start + hunk.target_length
+                    new_lines = [line.value for line in hunk.target_lines()]
+                    lines[start:end] = new_lines
+                target.write_text(''.join(lines), encoding='utf-8')
+            applied.append({"path": rel_path, "added": patched_file.added, "removed": patched_file.removed})
+        return jsonify({"ok": True, "files": applied})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -120,21 +165,58 @@ def run_control(tool_id: str):
     if action not in {'start','stop'}:
         return jsonify({"error": "action must be start|stop"}), 400
     
+    runtime = dev_bp.runtime
+    state = dev_bp.state
+    dev_id = f"dev-{tool_id}"
+    ws = tool_workspace(tool_id)
+    if not ws.exists():
+        return jsonify({"error": "No workspace; fork first"}), 404
+    
+    tool = state.get(tool_id)
+    if not tool:
+        return jsonify({"error": "Original tool not found"}), 404
+    
+    venv_dir = ws / ".venv"
+    if not venv_dir.exists():
+        return jsonify({"error": "Venv not found in workspace"}), 404
+    
+    entry = tool.get("entry", "app:app")
+    
     if action == 'start':
-        # For now, return mock info since we don't have runtime
-        return jsonify({"id": tool_id, "status": "started"})
+        if runtime.is_running(dev_id):
+            port = runtime.get_port(dev_id)
+            return jsonify({"id": tool_id, "status": "running", "port": port})
+        port = runtime.start_uvicorn(dev_id, venv_dir, ws, entry)
+        return jsonify({"id": tool_id, "status": "running", "port": port})
     else:
+        runtime.stop(dev_id)
         return jsonify({"id": tool_id, "status": "stopped"})
 
 @dev_bp.route('/<tool_id>/logs')
 def logs(tool_id: str):
-    # For now, return mock logs since we don't have runtime
-    def generate():
-        yield 'retry: 2000\n\n'
-        yield f'data: {{"event":"log","line":"Mock log for {tool_id}"}}\n\n'
-        yield f'data: {{"event":"log","line":"Tool {tool_id} is running in dev mode"}}\n\n'
-    
-    return Response(generate(), mimetype='text/event-stream')
+    runtime = dev_bp.runtime
+    dev_id = f"dev-{tool_id}"
+    pi = runtime.procs.get(dev_id)
+    if not pi:
+        return jsonify({"error":"tool not running in dev mode"}), 404
+
+    def gen():
+        yield "retry: 1500\n\n"
+        f = pi.popen.stdout
+        while True:
+            if pi.popen.poll() is not None:
+                yield f"data: {{\"event\":\"exit\",\"code\":{pi.popen.returncode}}}\n\n"
+                break
+            line = f.readline()
+            if not line:
+                time.sleep(0.1)
+                continue
+            try:
+                txt = line.decode("utf-8", errors="ignore").rstrip("\n")
+            except Exception:
+                txt = str(line)
+            yield f"data: {{\"event\":\"log\",\"line\":{json.dumps(txt)} }}\n\n"
+    return Response(gen(), mimetype="text/event-stream")
 
 @dev_bp.route('/<tool_id>/chat', methods=['POST'])
 def chat_stub(tool_id: str):
@@ -142,6 +224,7 @@ def chat_stub(tool_id: str):
     if not payload:
         return jsonify({"error": "Invalid JSON"}), 400
     
+    # Future: Integrate with AI service for generating patches (Claude, GPT, etc.)
     # MVP stub: echo back a tiny patch that adds a comment to app.py if present
     msg = (payload.get('message') or '').lower()
     ws = tool_workspace(tool_id)

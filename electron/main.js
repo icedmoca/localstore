@@ -13,10 +13,22 @@ win.loadURL('http://127.0.0.1:8000')
 
 
 app.whenReady().then(() => {
-const python = process.platform === 'win32' ? 'python' : 'python3'
-const backendPath = path.join(__dirname, '..', 'backend', 'app.py')
-backend = spawn(python, [backendPath], { stdio: 'inherit' })
-setTimeout(createWindow, 1000)
+  const python = process.platform === 'win32' ? 'python' : 'python3'
+  const backendPath = path.join(__dirname, '..', 'backend', 'app.py')
+  backend = spawn(python, [backendPath], { stdio: 'inherit' })
+
+  // Poll health
+  const checkHealth = setInterval(() => {
+    fetch('http://127.0.0.1:8000/api/health')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          clearInterval(checkHealth)
+          createWindow()
+        }
+      })
+      .catch(() => {})
+  }, 1000)
 })
 
 
