@@ -255,9 +255,15 @@ def update_tool(tool_id):
 
 # API key auth
 API_KEY = os.getenv('LOCALSTORE_API_KEY')
+
 @app.before_request
 def check_auth():
-    if API_KEY and request.headers.get('Authorization') != f'Bearer {API_KEY}':
+    if not API_KEY:
+        return
+    # allow non-API routes (SPA/static) without auth
+    if not request.path.startswith("/api/"):
+        return
+    if request.headers.get("Authorization") != f"Bearer {API_KEY}":
         return jsonify({"error": "Unauthorized"}), 401
 
 # On boot, start autostart tools
@@ -271,7 +277,8 @@ if __name__ == "__main__":
     
     # Production vs development mode
     debug_mode = os.getenv('FLASK_DEBUG', '1') == '1'
-    app.run(host="127.0.0.1", port=8000, debug=debug_mode)
+    # Don't use reloader in debug mode as it breaks streaming generators
+    app.run(host="127.0.0.1", port=8000, debug=debug_mode, use_reloader=False)
 
 # SSE logs for running process
 @app.get("/api/tools/<tool_id>/logs")
@@ -316,47 +323,63 @@ def spa_catchall(path):
     return send_from_directory(app.static_folder, 'index.html')
 
 # Reverse proxy for running tools
-@app.route("/api/apps/<tool_id>/", defaults={"path": ""}, methods=["GET","POST","PUT","PATCH","DELETE"])
-@app.route("/api/apps/<tool_id>/<path:path>", methods=["GET","POST","PUT","PATCH","DELETE"])
-def proxy(tool_id: str, path: str):
+ALLOWED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+
+def _running_port_from_state_or_runtime(actual_id: str):
+    # Prefer runtime (truth) if available; fallback to state (may be stale).
+    if runtime.is_running(actual_id):
+        p = runtime.get_port(actual_id)
+        if p:
+            return p
+    t = state.get(actual_id)
+    if t and t.get("port"):
+        return t["port"]
+    return None
+
+def _filtered_request_headers(h):
+    hop_by_hop = {
+        "connection","keep-alive","proxy-authenticate","proxy-authorization",
+        "te","trailers","transfer-encoding","upgrade","host"
+    }
+    return {k: v for k, v in h.items() if k.lower() not in hop_by_hop}
+
+@app.route("/api/apps/<tool_id>/", defaults={"subpath": ""}, methods=ALLOWED_METHODS)
+@app.route("/api/apps/<tool_id>/<path:subpath>", methods=ALLOWED_METHODS)
+def proxy(tool_id: str, subpath: str):
     is_dev = tool_id.startswith("dev-")
     actual_id = tool_id[4:] if is_dev else tool_id
-    t = state.get(actual_id)
-    
-    # Debug logging
-    print(f"Proxy request for {tool_id} -> {actual_id}, path: {path}")
-    print(f"Tool state: {t}")
-    
-    if not t:
-        print(f"Tool {actual_id} not found in state")
-        return jsonify({"error": "tool not found"}), 404
-    
-    if not t.get("port"):
-        print(f"Tool {actual_id} has no port: {t}")
+
+    port = _running_port_from_state_or_runtime(actual_id)
+    if not port:
         return jsonify({"error": "tool not running"}), 404
 
-    target = f"http://127.0.0.1:{t['port']}/{path}"
-    print(f"Proxying to: {target}")
-    
-    headers = {k: v for k, v in request.headers if k.lower() != "host"}
-    body = request.get_data()
+    # Normalize path and carry query string
+    tail = subpath.lstrip("/")
+    qs = request.query_string.decode("utf-8")
+    target_url = f"http://127.0.0.1:{port}/" + (tail if tail else "")
+    if qs:
+        target_url += ("?" + qs)
 
-    # Manual stream management to avoid early close
-    stream_cm = httpx.stream(request.method, target, headers=headers, content=body, follow_redirects=True, timeout=30.0)
-    r = stream_cm.__enter__()
+    req_method = request.method
+    req_headers = _filtered_request_headers(request.headers)
+    req_body = request.get_data() if req_method in ("POST","PUT","PATCH") else None
 
-    def generate():
-        try:
-            for chunk in r.iter_bytes():
-                yield chunk
-        finally:
-            stream_cm.__exit__(None, None, None)
+    try:
+        with httpx.stream(
+            req_method, target_url, headers=req_headers, content=req_body, follow_redirects=True, timeout=30.0
+        ) as r:
 
-    resp = Response(generate(), status=r.status_code)
-    for k, v in r.headers.items():
-        if k.lower() in ("content-type", "content-length", "cache-control", "etag"):
-            resp.headers[k] = v
-    return resp
+            def generate():
+                for chunk in r.iter_bytes():
+                    if chunk:
+                        yield chunk
+
+            # Filter response headers
+            blocked = {"connection","transfer-encoding","content-encoding","server"}
+            resp_headers = [(k, v) for k, v in r.headers.items() if k.lower() not in blocked]
+            return Response(generate(), status=r.status_code, headers=resp_headers)
+    except httpx.RequestError as e:
+        return jsonify({"error": f"proxy error: {e}"}), 502
 
 # Legacy route aliases for compatibility
 @app.route('/api/install/<tool_id>', methods=['POST'])

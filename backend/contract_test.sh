@@ -82,6 +82,9 @@ done
 echo "[proxy root]"; 
 retry_cmd "curl -fsS '$BASE/api/apps/$ID/' | tee /dev/stderr | grep -q '\"hello\":\"world\"'"
 
+echo "[proxy root no-slash]"; 
+retry_cmd "curl -fsS '$BASE/api/apps/$ID' | tee /dev/stderr | grep -q '\"hello\":\"world\"'"
+
 echo "[proxy ping]"; 
 retry_cmd "curl -fsS '$BASE/api/apps/$ID/ping' | tee /dev/stderr | grep -q '\"pong\":true'"
 
