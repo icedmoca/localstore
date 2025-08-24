@@ -60,8 +60,24 @@ retry_cmd "curl -fsS '$BASE/api/tools' | tee /dev/stderr | grep -q '\"id\":\"$ID
 echo "[start tool]"; 
 retry_cmd "curl -fsS -X POST '$BASE/api/tools/$ID/start' | tee /dev/stderr | grep -q '\"status\":\"running\"'"
 
-# Give more time for the tool to fully start
+# Give more time for the tool to fully start and verify it's ready
 sleep 3
+
+# Wait for the tool to actually be responding on its port
+echo "Waiting for tool to be ready..."
+for i in {1..10}; do
+    # Get the actual port from the backend
+    port=$(curl -fsS "$BASE/api/tools" | grep -o '"port":[0-9]*' | head -1 | cut -d: -f2)
+    if [[ -n "$port" ]] && curl -s "http://127.0.0.1:$port/" > /dev/null 2>&1; then
+        echo "Tool is ready on port $port"
+        break
+    fi
+    if [[ $i -eq 10 ]]; then
+        echo "Tool failed to become ready after 10 attempts"
+        exit 1
+    fi
+    sleep 1
+done
 
 echo "[proxy root]"; 
 retry_cmd "curl -fsS '$BASE/api/apps/$ID/' | tee /dev/stderr | grep -q '\"hello\":\"world\"'"
