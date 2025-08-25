@@ -1,14 +1,31 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Tag, Dialog, Spinner, Intent } from '@blueprintjs/core'
+import { Button, Card, Tag, Dialog, Spinner, Intent, ProgressBar } from '@blueprintjs/core'
 import { Link } from 'wouter'
 import api from '../api'
 import type { Tool } from '../types'
 import StatusBadge from './StatusBadge'
 
-export default function ToolCard({ t, onChange }: { t: Tool; onChange: () => void }) {
+interface ToolCardProps {
+  t: Tool
+  onChange: () => void
+  installProgress?: { progress: number, intent: string }
+  setInstallProgress?: (progress: number | null, intent: string) => void
+}
+
+export default function ToolCard({ t, onChange, installProgress, setInstallProgress }: ToolCardProps) {
   const [busy, setBusy] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
   const [logLines, setLogLines] = useState<string[]>([])
+  
+  // Use global progress state if available, otherwise local state
+  const hasGlobalProgress = installProgress !== undefined && setInstallProgress !== undefined
+  const [localInstallProgress, setLocalInstallProgress] = useState(0)
+  const [localShowProgress, setLocalShowProgress] = useState(false)
+  const [localProgressIntent, setLocalProgressIntent] = useState<Intent>(Intent.PRIMARY)
+  
+  const progress = hasGlobalProgress ? installProgress?.progress || 0 : localInstallProgress
+  const showProgress = hasGlobalProgress ? !!installProgress : localShowProgress
+  const progressIntent = hasGlobalProgress ? (installProgress?.intent || 'primary') as Intent : localProgressIntent
 
   useEffect(() => {
     if (!showLogs || t.status !== 'running') return
@@ -23,13 +40,65 @@ export default function ToolCard({ t, onChange }: { t: Tool; onChange: () => voi
     return () => es.close()
   }, [showLogs, t.status, t.id])
 
-  async function doAction(f: ()=>Promise<any>, okMsg: string) {
+  async function doAction(f: ()=>Promise<any>, okMsg: string, isInstall = false) {
     try {
       setBusy(true)
-      await f()
+      if (isInstall) {
+        // Use global progress if available
+        if (hasGlobalProgress && setInstallProgress) {
+          setInstallProgress(0, 'primary')
+        } else {
+          setLocalShowProgress(true)
+          setLocalProgressIntent(Intent.PRIMARY)
+          setLocalInstallProgress(0)
+        }
+        
+        // Simulate installation progress
+        let currentProgress = 0
+        const progressInterval = setInterval(() => {
+          currentProgress += Math.random() * 15
+          if (currentProgress >= 90) {
+            clearInterval(progressInterval)
+            currentProgress = 90
+          }
+          
+          if (hasGlobalProgress && setInstallProgress) {
+            setInstallProgress(currentProgress, 'primary')
+          } else {
+            setLocalInstallProgress(currentProgress)
+          }
+        }, 300)
+        
+        await f()
+        
+        clearInterval(progressInterval)
+        
+        if (hasGlobalProgress && setInstallProgress) {
+          setInstallProgress(100, 'success')
+        } else {
+          setLocalInstallProgress(100)
+          setLocalProgressIntent(Intent.SUCCESS)
+          
+          // Hide local progress bar after 3 seconds of success
+          setTimeout(() => {
+            setLocalShowProgress(false)
+            setLocalInstallProgress(0)
+          }, 3000)
+        }
+      } else {
+        await f()
+      }
       onChange()
       ;(window as any).__toast?.(okMsg)
     } catch (e:any) {
+      if (isInstall) {
+        if (hasGlobalProgress && setInstallProgress) {
+          setInstallProgress(null, 'primary')
+        } else {
+          setLocalShowProgress(false)
+          setLocalInstallProgress(0)
+        }
+      }
       ;(window as any).__toast?.(e?.message || 'Action failed')
     } finally {
       setBusy(false)
@@ -41,7 +110,7 @@ export default function ToolCard({ t, onChange }: { t: Tool; onChange: () => voi
 
   return (
     <>
-      <Card className="bp5-elevation-0" style={{ margin: '10px 0' }}>
+      <Card className="bp5-elevation-0" style={{ margin: '10px 0', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 24 }}>🧩</span>
@@ -59,82 +128,94 @@ export default function ToolCard({ t, onChange }: { t: Tool; onChange: () => voi
           </div>
         )}
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {t.port && (
               <Button 
-                small 
+                size="small" 
                 icon="share" 
                 onClick={() => window.open(`/api/apps/${t.id}/`, '_blank')}
-              >
-                Open
-              </Button>
+                text="Open"
+              />
             )}
             {t.status === 'running' && (
-              <Button small icon="document" onClick={() => setShowLogs(true)}>
-                Logs
-              </Button>
+              <Button 
+                size="small" 
+                icon="document" 
+                onClick={() => setShowLogs(true)}
+                text="Logs"
+              />
             )}
             {t.status === 'running' && t.port && (
               <Tag minimal>Port: {t.port}</Tag>
             )}
           </div>
           
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {isInstalled && (
-              <Link href={`/dev/${t.id}`}>
-                <Button small icon="code">
-                  Dev
-                </Button>
-              </Link>
+              <>
+                <Link href={`/edit/${t.id}`}>
+                  <Button 
+                    size="small" 
+                    icon="edit"
+                    text="Edit"
+                  />
+                </Link>
+              </>
             )}
             
             {!isInstalled ? (
               <Button 
-                small 
+                size="small" 
                 intent="primary" 
                 icon="download" 
                 loading={busy}
-                onClick={() => doAction(() => api.install(t.id), 'Installed')}
-              >
-                Install
-              </Button>
+                onClick={() => doAction(() => api.install(t.id), 'Installed', true)}
+                text="Install"
+              />
             ) : (
               <Button 
-                small 
+                size="small" 
                 intent="danger" 
                 icon="trash" 
                 loading={busy}
                 onClick={() => doAction(() => api.uninstall(t.id), 'Uninstalled')}
-              >
-                Delete
-              </Button>
+                text="Delete"
+              />
             )}
             
             {isInstalled && t.status !== 'running' && (
               <Button 
-                small 
+                size="small" 
                 intent="success" 
                 icon="play" 
                 loading={busy}
                 onClick={() => doAction(() => api.start(t.id), 'Started')}
-              >
-                Start
-              </Button>
+                text="Start"
+              />
             )}
             
             {t.status === 'running' && (
               <Button 
-                small 
+                size="small" 
                 icon="stop" 
                 loading={busy}
                 onClick={() => doAction(() => api.stop(t.id), 'Stopped')}
-              >
-                Stop
-              </Button>
+                text="Stop"
+              />
             )}
           </div>
         </div>
+        
+        {showProgress && (
+          <ProgressBar
+            intent={progressIntent}
+            value={installProgress / 100}
+            animate={progressIntent === Intent.PRIMARY}
+            stripes={progressIntent === Intent.PRIMARY}
+            style={{ marginTop: 12 }}
+          />
+        )}
       </Card>
       
       <Dialog

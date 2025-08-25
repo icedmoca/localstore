@@ -160,7 +160,7 @@ export default function AddToolDialog({ onClose }: AddToolDialogProps) {
             </div>
           } />
           
-          <Tab id="pip" title="Python Package" panel={
+          <Tab id="pip" title="Package" panel={
             <div style={{ padding: '16px 0' }}>
               <FormGroup label="Tool ID" labelFor="pip-id">
                 <InputGroup

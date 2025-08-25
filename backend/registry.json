@@ -7,5 +7,14 @@
     "author": "LocalStore",
     "path": "examples/hello-fapi",
     "entry": "app:app"
+  },
+  {
+    "id": "calculator",
+    "name": "Advanced Calculator",
+    "description": "A feature-rich scientific calculator with history and keyboard support",
+    "version": "1.0.0",
+    "author": "LocalStore",
+    "path": "tools/calculator",
+    "entry": "app:app"
   }
 ]

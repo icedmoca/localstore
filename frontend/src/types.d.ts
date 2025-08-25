@@ -27,6 +27,7 @@ export interface Runtime {
   path: string
   default: boolean
   managed: boolean
+  type?: string  // Added to support different runtime types
 }
 
 export interface FileNode {

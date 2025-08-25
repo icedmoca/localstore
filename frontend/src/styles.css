@@ -14,7 +14,7 @@
   --muted: #6b7280;
   --card: #ffffff;
   --border: #e5e7eb;
-  --accent: #2563eb;
+  --accent: var(--primary-color);
   --accent-fg: #ffffff;
   --shadow: 0 8px 24px rgba(0,0,0,0.06);
   --font-family: 'Berkeley Mono TX', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
@@ -38,7 +38,7 @@
   --muted: #9ca3af !important;
   --card: #0f1521 !important;
   --border: #1f2937 !important;
-  --accent: #3b82f6 !important;
+  --accent: var(--primary-color-darkmode) !important;
   --accent-fg: #0b0f17 !important;
   --shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
 }
@@ -350,3 +350,77 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* Remove conflicting font rule - Berkeley Mono TX is already applied globally */
+
+/* Theme color variables */
+:root {
+  --primary-color: #2563eb;
+  --primary-color-dark: #1e40af;
+  --primary-color-light: #60a5fa;
+  --primary-color-darkmode: #3b82f6;
+  --primary-color-darkmode-light: #60a5fa;
+}
+
+/* Apply primary color to Blueprint components */
+.bp5-button.bp5-intent-primary {
+  background-color: var(--primary-color);
+}
+
+.bp5-button.bp5-intent-primary:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.bp5-tag.bp5-intent-primary {
+  background-color: var(--primary-color);
+}
+
+.bp5-progress-bar .bp5-progress-meter {
+  background-color: var(--primary-color);
+}
+
+.bp5-switch input:checked ~ .bp5-control-indicator {
+  background-color: var(--primary-color);
+}
+
+.bp5-navbar {
+  box-shadow: 0 1px 0 rgba(16, 22, 26, 0.15);
+}
+
+.bp5-navbar .bp5-button.bp5-active {
+  background-color: var(--primary-color-light);
+  color: var(--primary-color-dark);
+}
+
+/* Dark mode color adjustments */
+.bp5-dark .bp5-button.bp5-intent-primary {
+  background-color: var(--primary-color-darkmode);
+}
+
+.bp5-dark .bp5-button.bp5-intent-primary:hover {
+  background-color: var(--primary-color-darkmode-light);
+}
+
+.bp5-dark .bp5-tag.bp5-intent-primary {
+  background-color: var(--primary-color-darkmode);
+}
+
+.bp5-dark .bp5-progress-bar .bp5-progress-meter {
+  background-color: var(--primary-color-darkmode);
+}
+
+.bp5-dark .bp5-switch input:checked ~ .bp5-control-indicator {
+  background-color: var(--primary-color-darkmode);
+}
+
+.bp5-dark .bp5-navbar .bp5-button.bp5-active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--primary-color-darkmode-light);
+}
+
+/* Progress bar intent styling */
+.bp5-progress-bar.bp5-intent-success .bp5-progress-meter {
+  background-color: #0a6640;
+}
+
+.bp5-dark .bp5-progress-bar.bp5-intent-success .bp5-progress-meter {
+  background-color: #15b371;
+}

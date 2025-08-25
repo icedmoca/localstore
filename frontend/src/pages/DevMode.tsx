@@ -269,28 +269,42 @@ export default function DevMode(){
           <div style={{ display: 'flex', gap: 8 }}>
             {running && port && (
               <Button 
-                small 
+                size="small" 
                 icon="share" 
                 onClick={() => window.open(`/api/apps/dev-${toolId}/`, '_blank')}
-              >
-                Open
-              </Button>
+                text="Open"
+              />
             )}
-            <Button small icon="floppy-disk" onClick={save} disabled={!dirty}>
-              Save
-            </Button>
+            <Button 
+              size="small" 
+              icon="floppy-disk" 
+              onClick={save} 
+              disabled={!dirty}
+              text="Save"
+            />
             {!running ? (
-              <Button small intent="success" icon="play" onClick={start}>
-                Start
-              </Button>
+              <Button 
+                size="small" 
+                intent="success" 
+                icon="play" 
+                onClick={start}
+                text="Start"
+              />
             ) : (
-              <Button small intent="danger" icon="stop" onClick={stop}>
-                Stop
-              </Button>
+              <Button 
+                size="small" 
+                intent="danger" 
+                icon="stop" 
+                onClick={stop}
+                text="Stop"
+              />
             )}
-            <Button small icon="chat" onClick={askChat}>
-              AI Patch
-            </Button>
+            <Button 
+              size="small" 
+              icon="chat" 
+              onClick={askChat}
+              text="AI Patch"
+            />
           </div>
         </div>
         <div style={{ flex: 1, border: dragOver ? '2px dashed var(--bp5-intent-primary)' : '1px solid var(--bp5-gray5)' }}>

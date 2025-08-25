@@ -1,6 +1,12 @@
 import type { Tool, RegistryItem, Runtime } from './types'
 
 const api = {
+  async health(): Promise<{ ok: boolean }> {
+    const r = await fetch('/api/health')
+    if (!r.ok) throw new Error('Backend not healthy')
+    return r.json()
+  },
+  
   async registry(): Promise<RegistryItem[]> {
     const r = await fetch('/api/registry')
     return r.json()
@@ -58,6 +64,26 @@ const api = {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates)
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+  
+  async addRuntime(data: { path: string; type: string }): Promise<Runtime> {
+    const r = await fetch('/api/runtimes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+  
+  async downloadRuntime(data: { url: string; type: string }): Promise<{ ok: boolean }> {
+    const r = await fetch('/api/runtimes/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     })
     if (!r.ok) throw new Error(await r.text())
     return r.json()

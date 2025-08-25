@@ -4,20 +4,47 @@ import {
   Button, 
   Navbar, 
   NavbarGroup, 
-  NavbarHeading, 
-  Tab, 
-  Tabs
+  NavbarHeading,
+  NavbarDivider,
+  Alignment,
+  Callout,
+  Breadcrumbs,
+  BreadcrumbProps
 } from '@blueprintjs/core'
 import Dashboard from './pages/Dashboard'
+import DevMode from './pages/DevMode'
+import EditTool from './pages/EditTool'
 import AddToolDialog from './pages/AddToolDialog'
 import Runtimes from './pages/Runtimes'
 import Settings from './pages/Settings'
+import api from './api'
 
 function AppContent() {
   const [location, setLocation] = useLocation()
   const [darkTheme, setDarkTheme] = useState(localStorage.getItem('theme') === 'dark')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [tools, setTools] = useState(null)
+  const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
+  const [installProgress, setInstallProgress] = useState<Record<string, { progress: number, intent: string }>>({})
+
+  // Clean up completed installations after 3 seconds
+  useEffect(() => {
+    const timers: NodeJS.Timeout[] = []
+    Object.entries(installProgress).forEach(([toolId, state]) => {
+      if (state.intent === 'success') {
+        const timer = setTimeout(() => {
+          setInstallProgress(prev => {
+            const newState = { ...prev }
+            delete newState[toolId]
+            return newState
+          })
+        }, 3000)
+        timers.push(timer)
+      }
+    })
+    return () => timers.forEach(clearTimeout)
+  }, [installProgress])
 
   useEffect(() => {
     // Apply dark theme to both body and html for complete coverage
@@ -37,41 +64,90 @@ function AppContent() {
       if (response.ok) {
         const data = await response.json()
         setTools(data)
+      } else {
+        setError('Failed to load tools')
       }
     } catch (error) {
       console.error('Failed to load tools:', error)
+      setError('Failed to connect to backend')
     }
   }
 
   useEffect(() => {
     loadTools()
+    // Check backend health
+    api.health().catch(() => {
+      setError('Backend is not responding. Make sure the server is running.')
+    })
   }, [])
 
-  const getActiveTabFromPath = (path: string) => {
-    if (path.startsWith('/runtimes')) return 'runtimes'
-    if (path.startsWith('/settings')) return 'settings'
-    return 'dashboard'
-  }
+  const navButtons = [
+    { path: '/', label: 'Dashboard', icon: 'dashboard' },
+    { path: '/runtimes', label: 'Runtimes', icon: 'code-block' },
+    { path: '/settings', label: 'Settings', icon: 'cog' }
+  ]
 
-  const activeTab = getActiveTabFromPath(location)
-
-  const handleTabChange = (newTabId: string) => {
-    const routes = {
-      dashboard: '/',
-      runtimes: '/runtimes',
-      settings: '/settings'
+  const getBreadcrumbs = (): BreadcrumbProps[] => {
+    if (location === '/') {
+      return [
+        { text: 'Dashboard', current: true },
+        { text: 'Tools', current: true }
+      ]
+    } else if (location === '/runtimes') {
+      return [
+        { text: 'Runtimes', current: true },
+        { text: 'List', current: true }
+      ]
+    } else if (location === '/settings') {
+      return [
+        { text: 'Settings', current: true }
+      ]
+    } else if (location.startsWith('/dev/')) {
+      const toolId = location.split('/')[2] || 'Tool'
+      const toolName = (tools || []).find?.((t:any) => t.id === toolId)?.name || toolId
+      return [
+        { text: 'Dashboard', href: '/', onClick: () => setLocation('/') },
+        { text: toolName, href: `/edit/${toolId}`, onClick: () => setLocation(`/edit/${toolId}`) },
+        { text: 'Development Mode', current: true }
+      ]
+    } else if (location.startsWith('/edit/')) {
+      const toolId = location.split('/')[2] || 'Tool'
+      const toolName = (tools || []).find?.((t:any) => t.id === toolId)?.name || toolId
+      return [
+        { text: 'Dashboard', href: '/', onClick: () => setLocation('/') },
+        { text: toolName, href: `/edit/${toolId}`, onClick: () => setLocation(`/edit/${toolId}`) },
+        { text: 'Edit Tool', current: true }
+      ]
     }
-    setLocation(routes[newTabId as keyof typeof routes] || '/')
+    return []
   }
 
   return (
     <div>
       <Navbar>
-        <NavbarGroup>
+        <NavbarGroup align={Alignment.LEFT}>
           <NavbarHeading>LocalStore</NavbarHeading>
+          <NavbarDivider />
+          {navButtons.map(btn => (
+            <Button
+              key={btn.path}
+              variant="minimal"
+              icon={btn.icon as any}
+              text={btn.label}
+              active={location === btn.path || (btn.path !== '/' && location.startsWith(btn.path))}
+              onClick={() => setLocation(btn.path)}
+            />
+          ))}
         </NavbarGroup>
-        <NavbarGroup align="right">
+        <NavbarGroup align={Alignment.RIGHT}>
           <Button
+            variant="minimal"
+            icon="plus"
+            text="Add Tool"
+            onClick={() => setShowAddDialog(true)}
+          />
+          <Button
+            variant="minimal"
             icon="refresh"
             text="Refresh"
             onClick={loadTools}
@@ -79,36 +155,62 @@ function AppContent() {
         </NavbarGroup>
       </Navbar>
 
-      <div style={{ padding: '20px' }}>
-        <Tabs
-          id="main-tabs"
-          selectedTabId={activeTab}
-          onChange={handleTabChange}
-        >
-          <Tab id="dashboard" title="Dashboard" />
-          <Tab id="runtimes" title="Runtimes" />
-          <Tab id="settings" title="Settings" />
-        </Tabs>
+      <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--bp5-divider-black)' }}>
+        <Breadcrumbs items={getBreadcrumbs()} />
+      </div>
 
-        <div style={{ marginTop: '20px' }}>
-          <Route path="/">
-            <Dashboard 
-              tools={tools} 
-              onRefresh={loadTools} 
-              onAddTool={() => setShowAddDialog(true)}
-              darkTheme={darkTheme}
+      <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
+        {error && (
+          <Callout intent="danger" style={{ marginBottom: 20, position: 'relative' }}>
+            {error}
+            <Button
+              variant="minimal"
+              size="small"
+              icon="cross"
+              onClick={() => setError(null)}
+              style={{ position: 'absolute', top: 8, right: 8 }}
             />
-          </Route>
-          <Route path="/runtimes">
-            <Runtimes />
-          </Route>
-          <Route path="/settings">
-            <Settings 
-              darkTheme={darkTheme} 
-              setDarkTheme={setDarkTheme} 
+          </Callout>
+        )}
+        
+        {info && (
+          <Callout intent="primary" style={{ marginBottom: 20, position: 'relative' }}>
+            {info}
+            <Button
+              variant="minimal"
+              size="small"
+              icon="cross"
+              onClick={() => setInfo(null)}
+              style={{ position: 'absolute', top: 8, right: 8 }}
             />
-          </Route>
-        </div>
+          </Callout>
+        )}
+
+        <Route path="/">
+          <Dashboard 
+            tools={tools} 
+            onRefresh={loadTools} 
+            onAddTool={() => setShowAddDialog(true)}
+            darkTheme={darkTheme}
+            installProgress={installProgress}
+            setInstallProgress={setInstallProgress}
+          />
+        </Route>
+        <Route path="/dev/:id">
+          <DevMode />
+        </Route>
+        <Route path="/edit/:id">
+          <EditTool />
+        </Route>
+        <Route path="/runtimes">
+          <Runtimes />
+        </Route>
+        <Route path="/settings">
+          <Settings 
+            darkTheme={darkTheme} 
+            setDarkTheme={setDarkTheme} 
+          />
+        </Route>
       </div>
       
       {showAddDialog && <AddToolDialog onClose={() => setShowAddDialog(false)} />}

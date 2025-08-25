@@ -9,6 +9,16 @@
       "path": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi",
       "venv": "/mnt/c/Users/kyled/Documents/localstore/tools/hello-fapi/.venv",
       "entry": "app:app"
+    },
+    "calculator": {
+      "id": "calculator",
+      "name": "Advanced Calculator",
+      "description": "A feature-rich scientific calculator with history and keyboard support",
+      "status": "stopped",
+      "port": null,
+      "path": "/mnt/c/Users/kyled/Documents/localstore/tools/calculator",
+      "venv": "/mnt/c/Users/kyled/Documents/localstore/tools/calculator/.venv",
+      "entry": "app:app"
     }
   }
 }

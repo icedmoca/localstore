@@ -11,6 +11,7 @@ import datetime
 import venv
 import httpx
 
+os.environ.setdefault("FLASK_SKIP_DOTENV", "1")
 from state_json import AtomicJSONState
 from install import ensure_tool_installed
 from proc import ProcManager, venv_python
@@ -65,14 +66,20 @@ def list_tools():
 
 @app.post("/api/tools/install")
 def install_tool():
-    tool_id = request.json.get("id")
-    reg = {i["id"]: i for i in json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))}
-    meta = reg.get(tool_id)
-    if not meta:
-        return jsonify({"error":"not in registry"}), 404
-    info = ensure_tool_installed(tool_id, meta, TOOLS_DIR)
-    state.upsert(info)
-    return jsonify(info)
+    try:
+        data = request.json or {}
+        tool_id = data.get("id")
+        if not tool_id:
+            return jsonify({"error":"missing id"}), 400
+        reg = {i["id"]: i for i in json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))}
+        meta = reg.get(tool_id)
+        if not meta:
+            return jsonify({"error":"not in registry"}), 404
+        info = ensure_tool_installed(tool_id, meta, TOOLS_DIR)
+        state.upsert(info)
+        return jsonify(info)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.post("/api/tools/<tool_id>/start")
 def start_tool(tool_id: str):
@@ -125,6 +132,123 @@ def delete_tool(tool_id: str):
 def uninstall_tool(tool_id: str):
     """Alias for delete_tool for legacy compatibility"""
     return delete_tool(tool_id)
+
+# File system helpers for installed tools
+def _tool_root(tool_id: str) -> Path:
+    t = state.get(tool_id)
+    if not t:
+        raise FileNotFoundError("Tool not found")
+    return Path(t['path']).resolve()
+
+def _safe_join(root: Path, rel: str) -> Path:
+    p = (root / rel).resolve()
+    if not str(p).startswith(str(root)):
+        raise ValueError('Path traversal')
+    return p
+
+@app.get('/api/tools/<tool_id>/files')
+def list_tool_files(tool_id: str):
+    try:
+        root = _tool_root(tool_id)
+        if not root.exists():
+            return jsonify({"error": "Tool path not found"}), 404
+        def build_tree(path: Path) -> dict:
+            node = { 'type': 'dir', 'name': path.name, 'children': [] }
+            try:
+                for p in path.iterdir():
+                    name = p.name
+                    if name in {'.venv', '__pycache__', '.git'}:
+                        continue
+                    if p.is_dir():
+                        node['children'].append(build_tree(p))
+                    else:
+                        node['children'].append({ 'type': 'file', 'name': name, 'path': str(p.relative_to(root)) })
+            except Exception:
+                pass
+            return node
+        return jsonify(build_tree(root))
+    except FileNotFoundError:
+        return jsonify({"error": "Tool not found"}), 404
+
+@app.get('/api/tools/<tool_id>/file')
+def read_tool_file(tool_id: str):
+    try:
+        rel = request.args.get('path', '')
+        if not rel:
+            return jsonify({"error": "Missing path"}), 400
+        root = _tool_root(tool_id)
+        target = _safe_join(root, rel)
+        if not target.exists():
+            return jsonify({"error": "Not found"}), 404
+        try:
+            txt = target.read_text(encoding='utf-8')
+        except Exception:
+            txt = target.read_text(errors='ignore')
+        return jsonify({"path": rel, "content": txt})
+    except FileNotFoundError:
+        return jsonify({"error": "Tool not found"}), 404
+    except ValueError:
+        return jsonify({"error": "Path traversal"}), 400
+
+@app.post('/api/tools/<tool_id>/file')
+def write_tool_file(tool_id: str):
+    try:
+        data = request.json or {}
+        rel = data.get('path')
+        content = data.get('content', '')
+        if not rel:
+            return jsonify({"error": "Missing path"}), 400
+        root = _tool_root(tool_id)
+        target = _safe_join(root, rel)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding='utf-8')
+        return jsonify({"ok": True})
+    except FileNotFoundError:
+        return jsonify({"error": "Tool not found"}), 404
+    except ValueError:
+        return jsonify({"error": "Path traversal"}), 400
+
+@app.post('/api/tools/<tool_id>/restart')
+def restart_tool(tool_id: str):
+    t = state.get(tool_id)
+    if not t:
+        return jsonify({"error": "Tool not found"}), 404
+    # stop
+    if runtime.is_running(tool_id):
+        runtime.stop(tool_id)
+    # start
+    try:
+        port = runtime.start_uvicorn(tool_id, Path(t['venv']), Path(t['path']), t['entry'])
+        t['status'] = 'running'; t['port'] = port; state.upsert(t)
+        return jsonify({"id": tool_id, "status": "running", "port": port})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.post('/api/tools/<tool_id>/exec')
+def exec_in_tool(tool_id: str):
+    t = state.get(tool_id)
+    if not t:
+        return jsonify({"error": "Tool not found"}), 404
+    data = request.json or {}
+    command = data.get('command')
+    python = data.get('python', False)
+    if not command:
+        return jsonify({"error": "Missing command"}), 400
+    cwd = Path(t['path'])
+    vpy = venv_python(Path(t['venv']))
+    try:
+        if python:
+            proc = subprocess.run([str(vpy), '-c', command], cwd=str(cwd), capture_output=True, text=True)
+        else:
+            # Use shell for convenience; in trusted local environment
+            proc = subprocess.run(command, cwd=str(cwd), shell=True, capture_output=True, text=True)
+        return jsonify({
+            "returncode": proc.returncode,
+            "stdout": proc.stdout,
+            "stderr": proc.stderr
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Creation
 @app.post("/api/tools/create/folder")
@@ -216,6 +340,7 @@ def list_runtimes():
     runtimes.append({
         "version": f"{sys.version_info.major}.{sys.version_info.minor}",
         "path": sys.executable,
+        "type": "python",
         "default": True,
         "managed": False
     })
@@ -230,11 +355,44 @@ def list_runtimes():
                 runtimes.append({
                     "version": version,
                     "path": py_path,
+                    "type": "python",
                     "default": False,
                     "managed": False
                 })
             except Exception:
                 pass
+    
+    # Try to find Node.js
+    node_path = shutil.which('node')
+    if node_path:
+        try:
+            result = subprocess.run([node_path, '--version'], capture_output=True, text=True)
+            version = result.stdout.strip()
+            runtimes.append({
+                "version": version,
+                "path": node_path,
+                "type": "node",
+                "default": False,
+                "managed": False
+            })
+        except Exception:
+            pass
+    
+    # Try to find Ruby
+    ruby_path = shutil.which('ruby')
+    if ruby_path:
+        try:
+            result = subprocess.run([ruby_path, '--version'], capture_output=True, text=True)
+            version = result.stdout.strip().split()[1]
+            runtimes.append({
+                "version": version,
+                "path": ruby_path,
+                "type": "ruby",
+                "default": False,
+                "managed": False
+            })
+        except Exception:
+            pass
     
     return jsonify(runtimes)
 
@@ -390,6 +548,61 @@ def on_error(e):
     code = getattr(e, "code", 500)
     msg = str(e) if code < 500 else "internal error"
     return jsonify({"error": msg}), code
+
+@app.post("/api/runtimes")
+def add_runtime():
+    """Add a new runtime"""
+    data = request.json
+    path = data.get("path")
+    runtime_type = data.get("type", "python")
+    
+    if not path:
+        return jsonify({"error": "Runtime path is required"}), 400
+    
+    # Validate runtime exists
+    if not Path(path).exists():
+        return jsonify({"error": f"Runtime not found at {path}"}), 404
+    
+    # Get version info
+    version = "Unknown"
+    try:
+        if runtime_type == "python":
+            result = subprocess.run([path, "--version"], capture_output=True, text=True)
+            version = result.stdout.strip() or result.stderr.strip()
+        elif runtime_type == "node":
+            result = subprocess.run([path, "--version"], capture_output=True, text=True)
+            version = result.stdout.strip()
+        # Add more runtime types as needed
+    except Exception:
+        pass
+    
+    # Store runtime info (in real implementation, save to state)
+    runtime_info = {
+        "path": path,
+        "type": runtime_type,
+        "version": version,
+        "default": False,
+        "managed": False
+    }
+    
+    return jsonify(runtime_info)
+
+@app.post("/api/runtimes/download")
+def download_runtime():
+    """Download and install a runtime from URL"""
+    data = request.json
+    url = data.get("url")
+    runtime_type = data.get("type", "python")
+    
+    if not url:
+        return jsonify({"error": "Download URL is required"}), 400
+    
+    # In real implementation, download and install the runtime
+    # This is a placeholder response
+    return jsonify({
+        "ok": True,
+        "message": f"Runtime download started for {runtime_type} from {url}"
+    })
 
 # On boot, start autostart tools
 if __name__ == "__main__":
