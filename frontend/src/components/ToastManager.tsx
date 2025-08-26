@@ -12,22 +12,22 @@ export const toast = {
     toaster.show({ message, intent, timeout })
   },
   success: (message: string, timeout = 3000) => {
-    toaster.show({ message, intent: Intent.SUCCESS, icon: 'tick', timeout })
+    toaster.show({ message, intent: Intent.SUCCESS, icon: 'tick' as any, timeout })
   },
   error: (message: string, timeout = 5000) => {
-    toaster.show({ message, intent: Intent.DANGER, icon: 'error', timeout })
+    toaster.show({ message, intent: Intent.DANGER, icon: 'error' as any, timeout })
   },
   warning: (message: string, timeout = 4000) => {
-    toaster.show({ message, intent: Intent.WARNING, icon: 'warning-sign', timeout })
+    toaster.show({ message, intent: Intent.WARNING, icon: 'warning-sign' as any, timeout })
   },
   info: (message: string, timeout = 3000) => {
-    toaster.show({ message, intent: Intent.PRIMARY, icon: 'info-sign', timeout })
+    toaster.show({ message, intent: Intent.PRIMARY, icon: 'info-sign' as any, timeout })
   },
   loading: (message: string) => {
     return toaster.show({ 
       message, 
       intent: Intent.NONE, 
-      icon: 'refresh',
+      icon: 'refresh' as any,
       timeout: 0  // No auto-dismiss
     })
   },

@@ -162,11 +162,11 @@ export default function ToolWizard({ isOpen, onClose, onSuccess }: ToolWizardPro
   })
 
   const steps = [
-    { title: 'Basic Information', icon: 'info-sign' },
-    { title: 'Tool Type', icon: 'application' },
-    { title: 'Features', icon: 'properties' },
-    { title: 'Configuration', icon: 'cog' },
-    { title: 'Review & Create', icon: 'tick-circle' }
+    { title: 'Basic Information', icon: 'info-sign' as any },
+    { title: 'Tool Type', icon: 'application' as any },
+    { title: 'Features', icon: 'properties' as any },
+    { title: 'Configuration', icon: 'cog' as any },
+    { title: 'Review & Create', icon: 'tick-circle' as any }
   ]
 
   const validateStep = (step: number): boolean => {
@@ -543,7 +543,7 @@ export default function ToolWizard({ isOpen, onClose, onSuccess }: ToolWizardPro
               onClick={() => idx < currentStep && setCurrentStep(idx)}
             >
               <Icon
-                icon={step.icon}
+                icon={step.icon as any}
                 size={24}
                 intent={idx <= currentStep ? Intent.PRIMARY : Intent.NONE}
               />
