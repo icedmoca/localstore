@@ -1,7 +1,38 @@
+# Core Framework (Flask as default)
+flask==3.0.0
+flask-cors==4.0.0
+
+# Optional Framework (FastAPI for compatibility)
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-httpx
-unidiff
-gitpython
-requests
+
+# Production Server
+gunicorn==21.2.0
+
+# HTTP Client
+httpx==0.25.2
+
+# Process Management
+psutil==5.9.6
+
+# Validation
 pydantic==2.5.0
+jsonschema==4.20.0
+
+# Git Support
+gitpython==3.1.40
+
+# Utilities
+requests==2.31.0
+unidiff==0.7.5
+
+# Logging
+python-json-logger==2.0.7
+
+# Development
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-asyncio==0.21.1

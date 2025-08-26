@@ -30,6 +30,7 @@ import { Popover2 } from '@blueprintjs/popover2'
 import { Table, Column, Cell } from '@blueprintjs/table'
 import api from '../../api'
 import type { Tool } from '../../types'
+import { toast } from '../../components/ToastManager'
 
 interface ToolSettingsDialogProps {
   isOpen: boolean
@@ -59,8 +60,6 @@ interface PermissionConfig {
   gpu: boolean
   systemCalls: boolean
 }
-
-const AppToaster = Toaster.create({ position: Position.TOP })
 
 export default function ToolSettingsDialog({ isOpen, onClose, tool, onSave }: ToolSettingsDialogProps) {
   const [selectedTabId, setSelectedTabId] = useState('general')
@@ -133,17 +132,9 @@ export default function ToolSettingsDialog({ isOpen, onClose, tool, onSave }: To
       onSave(updatedTool)
       setIsDirty(false)
       
-      AppToaster.show({
-        message: 'Tool settings saved successfully',
-        intent: Intent.SUCCESS,
-        timeout: 3000
-      })
+      toast.success('Tool settings saved successfully')
     } catch (error: any) {
-      AppToaster.show({
-        message: `Failed to save settings: ${error.message}`,
-        intent: Intent.DANGER,
-        timeout: 5000
-      })
+      toast.error(`Failed to save settings: ${error.message}`)
     } finally {
       setIsSaving(false)
     }
@@ -168,18 +159,10 @@ export default function ToolSettingsDialog({ isOpen, onClose, tool, onSave }: To
   const handleDelete = async () => {
     try {
       await api.uninstall(tool.id)
-      AppToaster.show({
-        message: 'Tool deleted successfully',
-        intent: Intent.SUCCESS,
-        timeout: 3000
-      })
+      toast.success('Tool deleted successfully')
       onClose()
     } catch (error: any) {
-      AppToaster.show({
-        message: `Failed to delete tool: ${error.message}`,
-        intent: Intent.DANGER,
-        timeout: 5000
-      })
+      toast.error(`Failed to delete tool: ${error.message}`)
     }
     setShowDeleteAlert(false)
   }
@@ -233,10 +216,7 @@ export default function ToolSettingsDialog({ isOpen, onClose, tool, onSave }: To
           setEnvVars([...envVars.filter(v => v.key), ...imported])
           setIsDirty(true)
         } catch (error) {
-          AppToaster.show({
-            message: 'Invalid JSON file',
-            intent: Intent.DANGER
-          })
+          toast.error('Invalid JSON file')
         }
       }
       reader.readAsText(file)

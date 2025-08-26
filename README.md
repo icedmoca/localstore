@@ -1,386 +1,381 @@
-# localstore
+# LocalStore
 
-> **A self-hosted Python tool marketplace with built-in development capabilities**
+<div align="center">
+  <h3>Self-Hosted Python Tool Marketplace & IDE</h3>
+  <p>Transform any Python package into a one-click web application</p>
+  
+  ![Python](https://img.shields.io/badge/Python-3.11+-blue)
+  ![React](https://img.shields.io/badge/React-18+-61dafb)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6)
+  ![Flask](https://img.shields.io/badge/Flask-3.0+-000000)
+  ![Blueprint](https://img.shields.io/badge/Blueprint-5+-137cbd)
+  ![License](https://img.shields.io/badge/License-Apache%202.0-green)
+  ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+</div>
 
-LocalStore transforms any Python package into a one-click, browser-accessible web tool. It provides a unified interface for discovering, installing, running, and developing Python-based applications locally with zero external dependencies.
-
-## **⚡ Quick Install**
-
-Get LocalStore running instantly with one command:
+## 🚀 One-Command Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/icedmoca/localstore/main/install.sh | bash
+# macOS/Linux
+curl -fsSL https://raw.githubusercontent.com/yourusername/localstore/main/install.sh | bash
+
+# From source
+./install.sh
 ```
 
-The install script automatically sets up Node.js, Python, dependencies, and LocalStore itself. Once complete, access LocalStore at `http://localhost:8000`.
+The installer will:
+- ✅ Verify Node.js 18+ and Python 3.11+
+- ✅ Install all dependencies
+- ✅ Build the production frontend
+- ✅ Create sample tools
+- ✅ Start LocalStore on port 8000
+- ✅ Run smoke tests
 
-![LocalStore Dashboard](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![React](https://img.shields.io/badge/React-18+-61dafb)
-![Blueprint](https://img.shields.io/badge/Blueprint-5+-137cbd)
-![License](https://img.shields.io/badge/License-ISC-lightgrey)
+## 🎯 Features
 
-## **Why LocalStore?**
+### Production-Ready
+- **Two Modes Only**: Development (`npm run dev`) and Production (`npm run prod`)
+- **Transactional Installs**: Atomic tool installation with rollback on failure
+- **Process Management**: Robust port allocation, health checks, and auto-restart
+- **Security Hardened**: Rate limiting, CSP headers, request validation, sandboxed execution
+- **Schema Validation**: Shared TypeScript/Python schemas with JSON Schema
+- **Comprehensive Testing**: Unit, integration, E2E, and smoke tests
 
-The Python ecosystem is fragmented with tools scattered across different platforms. LocalStore solves this by providing:
+### Developer-Friendly
+- **Hot Reload**: Both frontend (Vite) and backend (Flask debug mode)
+- **Built-in IDE**: Monaco editor with TypeScript support
+- **Live Logs**: Real-time streaming with XTerm.js
+- **File Management**: Create, edit, delete files with diff/undo
+- **Git Integration**: Automatic repository initialization
+- **Tool Wizard**: Scaffold new tools with templates
 
-- **Security**: Run tools locally without trusting external servers
-- **One-Click Setup**: Automated dependency management and environment setup
-- **Development Mode**: Built-in code editor and live development tools
-- **Web Interface**: Access tools through a modern, responsive web UI
-- **Zero Lock-in**: Tools are standard Python apps (FastAPI/Flask)
-- **Beautiful UI**: Modern interface with Blueprint v5 and Berkeley Mono TX font
+### UI/UX Polish
+- **Modern Design**: Blueprint v5 components with dark mode
+- **Responsive**: Works on desktop, tablet, and mobile
+- **Progress Indicators**: Real-time feedback during operations
+- **Keyboard Shortcuts**: Efficient navigation and actions
+- **Accessibility**: ARIA labels, keyboard navigation, color contrast
+- **Performance**: Code splitting, memoization, virtual scrolling
 
-## **Features**
+## 📋 Prerequisites
 
-### **User Experience**
-- **Dashboard**: Clean, card-based interface showing all installed tools
-- **Tool Discovery**: Browse available tools with descriptions and metadata
-- **One-Click Install**: Automated setup with virtual environments
-- **Start/Stop Controls**: Simple tool lifecycle management
-- **Real-time Status**: Live monitoring of running tools
-- **Dark Mode**: Complete dark theme support throughout the application
+- **Node.js** 18+ with npm
+- **Python** 3.11+ with pip
+- **Git** (recommended for development features)
+- **macOS** or **Linux** (Windows via WSL)
 
-### **Developer Experience**
-- **Code Editor**: Built-in Monaco editor for viewing and editing source code
-- **File Browser**: Navigate tool file structure directly in the UI
-- **Live Logs**: Real-time streaming of tool output and errors
-- **Git Integration**: Automatic repository initialization for development
-- **Process Management**: Automatic port allocation and process lifecycle
-- **Virtual Environments**: Each tool runs in isolated Python environments
-
-### **Technical Features**
-- **Modern Stack**: React 18+ with TypeScript and Blueprint v5
-- **Custom Typography**: Berkeley Mono TX monospace font throughout
-- **Responsive Design**: Works seamlessly on desktop and mobile
-- **API-First**: RESTful API for all operations
-- **Hot Reload**: Instant updates during development
-- **Testing**: Comprehensive testing with Vitest and Playwright
-
-## **Quick Start**
-
-### **Prerequisites**
-- **Python 3.11+** with pip
-- **Node.js 18+** with npm
-- **Git** (for development features)
-
-### **Installation**
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/icedmoca/localstore.git
-   cd localstore
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install root dependencies
-   npm install
-   
-   # Install frontend dependencies
-   cd frontend && npm install
-   
-   # Install backend dependencies
-   cd ../backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Start the application**
-   ```bash
-   # Development mode (frontend + backend)
-   npm run dev
-   
-   # Production mode (single command)
-   npm run prod
-   ```
-
-### **Access the Application**
-- **Development**: Frontend at http://localhost:3000, Backend at http://localhost:8000
-- **Production**: Everything at http://localhost:8000
-
-## **Architecture**
-
-LocalStore follows a modern, microservice-inspired architecture:
+## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │     Tools       │
-│   (React 18+)   │◄──►│   (Flask API)   │◄──►│  (Python Apps)  │
-│                 │    │                 │    │                 │
-│ • Blueprint v5  │    │ • Tool Manager  │    │ • FastAPI       │
-│ • TypeScript    │    │ • Process Ctrl  │    │ • Flask         │
-│ • Berkeley Mono │    │ • Dev Mode      │    │ • Custom Apps   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│   Frontend (React)  │     │   Backend (Flask)   │     │   Tools (Python)    │
+├─────────────────────┤     ├─────────────────────┤     ├─────────────────────┤
+│ • React 18 + TS     │────▶│ • Flask 3.0         │────▶│ • FastAPI/Flask     │
+│ • Blueprint v5      │     │ • Process Manager   │     │ • Isolated venvs    │
+│ • Zustand + Vite    │◀────│ • Tool Installer    │     │ • Health checks     │
+│ • Monaco + XTerm    │     │ • Security Layer    │     │ • Auto-restart      │
+└─────────────────────┘     └─────────────────────┘     └─────────────────────┘
 ```
 
-### **Frontend Architecture**
-- **Framework**: React 18+ with TypeScript
-- **UI Library**: Blueprint v5 for professional components
-- **Routing**: Wouter for lightweight client-side routing
-- **Styling**: CSS custom properties with Berkeley Mono TX font
-- **Build Tool**: Vite for fast development and optimized builds
+## 🚦 Quick Start
 
-### **Backend Architecture**
-- **Framework**: Flask with CORS support
-- **Process Management**: Custom ProcManager for tool lifecycle
-- **Virtual Environments**: Automatic Python venv creation and management
-- **Development Mode**: Blueprint-based API for development features
-- **State Management**: Atomic JSON state with file persistence
+### Development Mode
+```bash
+npm run dev
+# Frontend: http://localhost:3000 (hot reload)
+# Backend: http://localhost:8000 (debug mode)
+```
 
-### **Tool Architecture**
-- **Standard Format**: Any Python web app (FastAPI/Flask)
-- **Entry Point**: Configurable via `entry` field in registry
-- **Dependencies**: Automatic installation from requirements.txt
-- **Isolation**: Each tool runs in its own virtual environment
-- **Port Management**: Automatic port allocation and conflict resolution
+### Production Mode
+```bash
+npm run prod
+# Everything at http://localhost:8000
+# Static frontend served by Flask
+# Gunicorn with 4 workers
+```
 
-## **Project Structure**
+## 📦 Project Structure
 
 ```
 localstore/
-├── frontend/                 # React frontend application
+├── frontend/              # React TypeScript frontend
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/          # Application pages
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── styles.css      # Global styles with Berkeley Mono TX
-│   │   └── main.tsx        # Application entry point
-│   ├── public/
-│   │   └── fonts/          # Berkeley Mono TX font files
-│   └── package.json        # Frontend dependencies
-├── backend/                 # Flask backend API
-│   ├── app.py              # Main Flask application
-│   ├── dev_api.py          # Development mode API
-│   ├── install.py          # Tool installation logic
-│   ├── proc.py             # Process management
-│   ├── registry.json       # Available tools registry
-│   └── requirements.txt    # Python dependencies
-├── tools/                   # Installed tools directory
-├── examples/                # Example tools
-│   └── hello-fapi/         # Sample FastAPI application
-├── electron/                # Desktop app wrapper (optional)
-└── package.json             # Root project configuration
+│   │   ├── components/   # Reusable UI components
+│   │   ├── pages/        # Route pages
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── state/        # Zustand stores
+│   │   └── schemas.ts    # Shared type definitions
+│   └── tests/
+│       └── e2e/          # Playwright E2E tests
+├── backend/              # Flask backend
+│   ├── app.py           # Main Flask application
+│   ├── proc.py          # Process manager
+│   ├── install.py       # Tool installer
+│   ├── security.py      # Security utilities
+│   ├── schemas.py       # JSON Schema validation
+│   └── tests/           # pytest test suite
+├── tools/               # Installed tools
+├── install.sh           # One-command installer
+├── smoke_test.sh        # Production smoke test
+└── package.json         # npm scripts
 ```
 
-## **Usage**
+## 🛠️ Tool Development
 
-### **Installing Tools**
+### Creating a New Tool
 
-1. **Browse Available Tools**: View the registry of available tools
-2. **Click Install**: One-click installation with automatic dependency setup
-3. **Start the Tool**: Launch the tool with a single click
-4. **Access the Tool**: Open the tool in your browser at the assigned port
+1. **Use Tool Wizard** (recommended):
+   - Navigate to Settings → Create Tool
+   - Choose template (FastAPI/Flask)
+   - Fill in metadata
+   - Auto-generates scaffold
 
-### **Development Mode**
-
-1. **Fork a Tool**: Create a development workspace from an installed tool
-2. **Edit Code**: Use the built-in Monaco editor to modify source code
-3. **View Files**: Navigate the tool's file structure
-4. **Live Logs**: Monitor real-time output and errors
-5. **Git Integration**: Automatic repository initialization for version control
-
-### **Creating Custom Tools**
-
-1. **Create Tool Structure**:
+2. **Manual Creation**:
+   ```python
+   # tools/my-tool/app.py
+   from fastapi import FastAPI
+   
+   app = FastAPI()
+   
+   @app.get("/health")
+   def health():
+       return {"status": "healthy"}
+   
+   @app.get("/")
+   def root():
+       return {"message": "Hello from my tool!"}
    ```
-   my-tool/
-   ├── app.py              # Main application file
-   ├── requirements.txt     # Python dependencies
-   └── README.md           # Tool description
+   
+   ```txt
+   # tools/my-tool/requirements.txt
+   fastapi==0.104.1
+   uvicorn==0.24.0
    ```
 
-2. **Add to Registry**:
+3. **Register in Registry**:
    ```json
    {
      "id": "my-tool",
-     "name": "My Custom Tool",
-     "description": "Description of what the tool does",
+     "name": "My Tool",
+     "description": "A custom tool",
+     "version": "1.0.0",
      "path": "tools/my-tool",
-     "entry": "app:app"
+     "entry": "app:app",
+     "tags": ["custom"]
    }
    ```
 
-3. **Install and Run**: Use the LocalStore interface to install and run your tool
+### Tool Entry Points
+- **FastAPI**: `app:app` (module:variable)
+- **Flask**: `app:app` or `app:create_app()`
+- **Custom**: Any ASGI/WSGI callable
 
-## **Configuration**
+## 🔒 Security
 
-### **Environment Variables**
-- `FLASK_DEBUG`: Set to 0 for production, 1 for development
-- `PYTHONUNBUFFERED`: Set to 1 for immediate log output
+### Built-in Protections
+- **Rate Limiting**: Configurable per endpoint
+- **Request Validation**: JSON Schema for all inputs
+- **Path Traversal**: Blocked at multiple levels
+- **Process Isolation**: Each tool in separate venv
+- **CSP Headers**: Restrictive content security policy
+- **API Authentication**: Optional Bearer token
 
-### **Registry Configuration**
-The `backend/registry.json` file defines available tools:
+### Environment Variables
+```bash
+# Optional API key protection
+export LOCALSTORE_API_KEY=your-secret-key
+
+# Production mode
+export FLASK_ENV=production
+export FLASK_DEBUG=0
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Backend tests with coverage
+cd backend && pytest --cov
+
+# Frontend unit tests
+cd frontend && npm test
+
+# E2E tests
+cd frontend && npm run e2e
+
+# Production smoke test
+./smoke_test.sh
+```
+
+See [TESTING.md](TESTING.md) for comprehensive testing guide.
+
+## 📊 Monitoring
+
+### Health Endpoints
+- Backend: `GET /api/health`
+- Tools: `GET /health` (if implemented)
+
+### Structured Logging
 ```json
-[
-  {
-    "id": "tool-id",
-    "name": "Display Name",
-    "description": "Tool description",
-    "version": "1.0.0",
-    "author": "Author Name",
-    "path": "path/to/tool",
-    "entry": "module:app"
-  }
-]
-```
-
-### **Tool Entry Points**
-- **FastAPI**: `app:app` (app variable from app module)
-- **Flask**: `app:app` (app variable from app module)
-- **Custom**: `module:variable` (any Python callable)
-
-## **Testing**
-
-### **Frontend Tests**
-```bash
-cd frontend
-npm test              # Run unit tests with Vitest
-npm run test:ui       # Run tests with UI
-npm run e2e           # Run end-to-end tests with Playwright
-```
-
-### **Backend Tests**
-```bash
-npm run test:contract  # Run API contract tests
-```
-
-### **Manual Testing**
-1. Start the application: `npm run dev`
-2. Install a tool from the examples
-3. Test start/stop functionality
-4. Verify development mode features
-
-## **Deployment**
-
-### **Development**
-```bash
-npm run dev
-```
-- Frontend: http://localhost:3000 (with hot reload)
-- Backend: http://localhost:8000 (API only)
-
-### **Production**
-```bash
-npm run prod
-```
-- Single command builds frontend and starts backend
-- Everything served from http://localhost:8000
-- Optimized production build
-
-### **Docker (Future)**
-```dockerfile
-# Coming soon - Docker support for easy deployment
-FROM python:3.11-slim
-# ... Docker configuration
-```
-
-## 🔌 **API Reference**
-
-### **Core Endpoints**
-- `GET /api/health` - Health check
-- `GET /api/registry` - List available tools
-- `GET /api/tools` - List installed tools
-- `POST /api/tools/install` - Install a tool
-- `POST /api/tools/{id}/start` - Start a tool
-- `POST /api/tools/{id}/stop` - Stop a tool
-
-### **Development Endpoints**
-- `POST /api/dev/{id}/fork` - Create development workspace
-- `GET /api/dev/{id}/files` - List workspace files
-- `GET /api/dev/{id}/file?path=...` - Read file content
-- `POST /api/dev/{id}/file` - Write file content
-- `POST /api/dev/{id}/run` - Execute commands
-- `GET /api/dev/{id}/logs` - Stream live logs
-
-## **Customization**
-
-### **Styling**
-The application uses CSS custom properties for theming:
-```css
-:root {
-  --bg: #ffffff;
-  --fg: #111827;
-  --accent: #2563eb;
-  --font-family: 'Berkeley Mono TX', monospace;
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "level": "info",
+  "message": "tool_started",
+  "tool_id": "calculator",
+  "port": 9001,
+  "request_id": "abc123"
 }
 ```
 
-### **Fonts**
-Berkeley Mono TX is the primary font, with fallbacks to system monospace fonts.
+### Process Status
+```bash
+# Check tool status via API
+curl http://localhost:8000/api/tools
 
-### **Components**
-All UI components are built with Blueprint v5, ensuring consistency and accessibility.
+# View logs
+tail -f backend/app.log
+```
 
-## **Troubleshooting**
+## 🚀 Deployment
 
-### **Common Issues**
+### Systemd Service (Linux)
+```ini
+[Unit]
+Description=LocalStore
+After=network.target
+
+[Service]
+Type=simple
+User=localstore
+WorkingDirectory=/opt/localstore
+ExecStart=/opt/localstore/run_prod.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Docker (Coming Soon)
+```dockerfile
+FROM python:3.11-slim
+# ... Dockerfile content
+```
+
+### Reverse Proxy (nginx)
+```nginx
+server {
+    listen 80;
+    server_name localstore.example.com;
+    
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+## 🔧 Configuration
+
+### Port Range
+Tools are allocated ports from 9000-9999 by default. Configure in `backend/proc.py`:
+```python
+PortManager(port_range=(9000, 9999))
+```
+
+### File Limits
+- Max upload: 16MB (configurable)
+- Max file read: 1MB (for editor)
+
+### Rate Limits
+Default limits per endpoint:
+- Install: 10/min
+- Start/Stop: 30/min
+- File operations: 30/min
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Port already in use**
+```bash
+lsof -i :8000
+kill -9 <PID>
+```
+
+**Python version issues**
+```bash
+python3 --version  # Must be 3.11+
+# Use pyenv or conda to install correct version
+```
+
+**Permission denied**
+```bash
+chmod +x install.sh
+sudo chown -R $USER:$USER tools/
+```
 
 **Tool won't start**
-- Check if port is already in use
-- Verify virtual environment is properly created
-- Check tool logs for Python errors
+- Check logs: `tail -f backend/app.log`
+- Verify venv: `ls tools/<tool-id>/.venv`
+- Test manually: `cd tools/<tool-id> && .venv/bin/python -m uvicorn app:app`
 
-**Installation fails**
-- Ensure Python 3.11+ is installed
-- Check if pip is available in the virtual environment
-- Verify tool path exists in registry
-
-**Frontend won't load**
-- Check if backend is running on port 8000
-- Verify Vite dev server is running on port 3000
-- Check browser console for JavaScript errors
-
-### **Logs and Debugging**
-- Backend logs: Check terminal output
-- Frontend logs: Check browser console
-- Tool logs: Use the development mode log viewer
-
-## **Contributing**
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Add tests** for new functionality
-5. **Commit your changes**: `git commit -m 'Add amazing feature'`
-6. **Push to the branch**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request**
-
-### **Development Setup**
+### Debug Mode
 ```bash
-# Clone and setup
-git clone <your-fork>
-cd localstore
-npm install
-cd frontend && npm install
-cd ../backend && python -m venv venv && pip install -r requirements.txt
+# Enable debug logging
+export FLASK_DEBUG=1
+npm run dev
 
-# Start development
+# Check browser console
+# Check network tab for API errors
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing`
+3. Make changes with tests
+4. Run all tests: `npm test && ./smoke_test.sh`
+5. Commit: `git commit -m 'Add amazing feature'`
+6. Push: `git push origin feature/amazing`
+7. Open Pull Request
+
+### Development Setup
+```bash
+git clone https://github.com/yourusername/localstore
+cd localstore
+./install.sh
 npm run dev
 ```
 
-## 📄 **License**
+### Code Style
+- Python: Black + isort
+- TypeScript: Prettier + ESLint
+- Commits: Conventional commits
 
-This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
+## 📄 License
 
-## 🙏 **Acknowledgments**
+Apache License 2.0 - see [LICENSE](LICENSE) file
 
-- **Blueprint v5** for the beautiful UI components
-- **Berkeley Mono TX** for the elegant typography
-- **React 18+** for the modern frontend framework
-- **Flask** for the robust backend API
-- **Vite** for the lightning-fast build tool
+## 🙏 Acknowledgments
 
-## 📞 **Support**
+- [Blueprint](https://blueprintjs.com/) - UI components
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) - Code editor
+- [XTerm.js](https://xtermjs.org/) - Terminal emulator
+- [Flask](https://flask.palletsprojects.com/) - Backend framework
+- [Vite](https://vitejs.dev/) - Frontend tooling
 
-- **Issues**: [GitHub Issues](https://github.com/icedmoca/localstore/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/icedmoca/localstore/discussions)
-- **Documentation**: [Wiki](https://github.com/icedmoca/localstore/wiki)
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/localstore/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/localstore/discussions)
+- **Security**: security@example.com
 
 ---
 
-**Made with ❤️ for the Python community**
-
-Transform your Python tools into beautiful web applications with LocalStore! 🚀
+<div align="center">
+  <p>Built with ❤️ for the Python community</p>
+  <p>Make your Python tools accessible to everyone!</p>
+</div>

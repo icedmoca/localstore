@@ -14,13 +14,15 @@ import {
 import Dashboard from './pages/Dashboard'
 import DevMode from './pages/DevMode'
 import EditTool from './pages/EditTool'
-import AddToolDialog from './pages/AddToolDialog'
+import ToolWizard from './components/ToolWizard'
 import Runtimes from './pages/Runtimes'
 import Settings from './pages/Settings'
 import Preview from './pages/Preview'
 import NotFound from './components/NotFound'
 import ToolSettingsPage from './features/settings/ToolSettingsPage'
 import api from './api'
+import './components/ToastManager'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 
 function AppContent() {
   const location = useLocation()
@@ -76,6 +78,17 @@ function AppContent() {
       setError('Failed to connect to backend')
     }
   }
+
+  const toggleTheme = () => {
+    setDarkTheme(prev => !prev)
+  }
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts(
+    () => setShowAddDialog(true),
+    toggleTheme,
+    loadTools
+  )
 
   useEffect(() => {
     loadTools()
@@ -229,7 +242,7 @@ function AppContent() {
         </Routes>
       </div>
       
-      {showAddDialog && <AddToolDialog onClose={() => setShowAddDialog(false)} />}
+      {showAddDialog && <ToolWizard isOpen={showAddDialog} onClose={() => setShowAddDialog(false)} onSuccess={loadTools} />}
     </div>
   )
 }

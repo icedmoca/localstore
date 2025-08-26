@@ -114,6 +114,15 @@ const api = {
     })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
+  },
+  async createFromTemplate(data: any): Promise<{ ok: boolean }> {
+    const r = await fetch('/api/tools/create/template', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
   }
 }
 

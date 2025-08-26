@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # LocalStore One-Command Install Script
-# This script sets up Node.js, Python, dependencies, and LocalStore in one command
+# Production-ready installer for macOS/Linux
 
 set -e  # Exit on any error
 
@@ -12,28 +12,12 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# ASCII Art
-echo -e "${BLUE}"
-cat << "EOF"
- ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄           ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
-▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌         ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
-▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░▌         ▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌
-▐░▌       ▐░▌▐░▌          ▐░▌          ▐░▌       ▐░▌▐░▌         ▐░▌               ▐░▌     ▐░▌       ▐░▌▐░▌       ▐░▌
-▐░█▄▄▄▄▄▄▄█░▌▐░▌          ▐░▌          ▐░█▄▄▄▄▄▄▄█░▌▐░▌         ▐░█▄▄▄▄▄▄▄▄▄      ▐░▌     ▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄█░▌
-▐░░░░░░░░░░░▌▐░▌          ▐░▌          ▐░░░░░░░░░░░▌▐░▌         ▐░░░░░░░░░░░▌     ▐░▌     ▐░▌       ▐░▌▐░░░░░░░░░░░▌
-▐░█▀▀▀▀▀▀▀█░▌▐░▌          ▐░▌          ▐░█▀▀▀▀▀▀▀█░▌▐░▌          ▀▀▀▀▀▀▀▀▀█░▌     ▐░▌     ▐░▌       ▐░▌▐░█▀▀▀▀█░█▀▀ 
-▐░▌       ▐░▌▐░▌          ▐░▌          ▐░▌       ▐░▌▐░▌                    ▐░▌     ▐░▌     ▐░▌       ▐░▌▐░▌     ▐░▌  
-▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄█░▌     ▐░▌     ▐░█▄▄▄▄▄▄▄█░▌▐░▌      ▐░▌ 
-▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌     ▐░▌     ▐░░░░░░░░░░░▌▐░▌       ▐░▌
- ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀       ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀ 
-EOF
-echo -e "${NC}"
+# Configuration
+MIN_NODE_VERSION=18
+MIN_PYTHON_VERSION="3.11"
+DEFAULT_PORT=8000
 
-echo -e "${GREEN}LocalStore - Self-hosted Python Tool Marketplace${NC}"
-echo -e "${YELLOW}Setting up your development environment in seconds...${NC}"
-echo ""
-
-# Function to print status
+# Print functions
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -43,23 +27,33 @@ print_success() {
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-# Detect OS
-detect_os() {
+# Banner
+print_banner() {
+    echo -e "${BLUE}"
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║                      LocalStore IDE                          ║"
+    echo "║        Self-hosted Python Tool Marketplace                   ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+}
+
+# Check if running on supported OS
+check_os() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         OS="macos"
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         OS="linux"
-    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-        OS="windows"
     else
-        OS="unknown"
+        print_error "Unsupported OS: $OSTYPE"
+        print_error "This installer supports macOS and Linux only."
+        exit 1
     fi
     print_status "Detected OS: $OS"
 }
@@ -69,302 +63,457 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Install Node.js if not present
-install_node() {
-    if command_exists node; then
-        NODE_VERSION=$(node --version)
-        print_success "Node.js already installed: $NODE_VERSION"
-        
-        # Check if version is 18+
-        NODE_MAJOR=$(echo $NODE_VERSION | cut -d'.' -f1 | sed 's/v//')
-        if [ "$NODE_MAJOR" -lt 18 ]; then
-            print_warning "Node.js version is less than 18. Consider upgrading."
-        fi
-        return
-    fi
-
-    print_status "Installing Node.js..."
-    
-    if [[ "$OS" == "macos" ]]; then
-        if command_exists brew; then
-            brew install node
-        else
-            print_error "Homebrew not found. Please install Node.js 18+ manually from https://nodejs.org"
-            exit 1
-        fi
-    elif [[ "$OS" == "linux" ]]; then
-        # Try different package managers
-        if command_exists apt-get; then
-            # Ubuntu/Debian
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-        elif command_exists yum; then
-            # RHEL/CentOS
-            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
-            sudo yum install -y nodejs npm
-        elif command_exists dnf; then
-            # Fedora
-            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
-            sudo dnf install -y nodejs npm
-        elif command_exists pacman; then
-            # Arch Linux
-            sudo pacman -S nodejs npm
-        else
-            print_error "Package manager not found. Please install Node.js 18+ manually from https://nodejs.org"
-            exit 1
-        fi
-    else
-        print_error "Unsupported OS for automatic Node.js installation. Please install Node.js 18+ manually from https://nodejs.org"
-        exit 1
-    fi
-    
-    print_success "Node.js installed successfully"
+# Version comparison
+version_ge() {
+    # Returns 0 if version $1 >= version $2
+    printf '%s\n%s' "$2" "$1" | sort -V -C
 }
 
-# Install Python if not present
-install_python() {
-    if command_exists python3; then
-        PYTHON_VERSION=$(python3 --version)
-        print_success "Python3 already installed: $PYTHON_VERSION"
-        
-        # Check if version is 3.11+
-        PYTHON_MINOR=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-        if [[ "$PYTHON_MINOR" < "3.11" ]]; then
-            print_warning "Python version is less than 3.11. Consider upgrading."
-        fi
-        return
-    fi
-
-    print_status "Installing Python3..."
-    
-    if [[ "$OS" == "macos" ]]; then
-        if command_exists brew; then
-            brew install python@3.11
-        else
-            print_error "Homebrew not found. Please install Python 3.11+ manually from https://python.org"
-            exit 1
-        fi
-    elif [[ "$OS" == "linux" ]]; then
-        if command_exists apt-get; then
-            # Ubuntu/Debian
-            sudo apt-get update
-            sudo apt-get install -y python3 python3-pip python3-venv
-        elif command_exists yum; then
-            # RHEL/CentOS
-            sudo yum install -y python3 python3-pip
-        elif command_exists dnf; then
-            # Fedora
-            sudo dnf install -y python3 python3-pip
-        elif command_exists pacman; then
-            # Arch Linux
-            sudo pacman -S python python-pip
-        else
-            print_error "Package manager not found. Please install Python 3.11+ manually from https://python.org"
-            exit 1
-        fi
-    else
-        print_error "Unsupported OS for automatic Python installation. Please install Python 3.11+ manually from https://python.org"
-        exit 1
+# Check Node.js
+check_node() {
+    if ! command_exists node; then
+        print_error "Node.js is not installed"
+        print_error "Please install Node.js ${MIN_NODE_VERSION}+ from https://nodejs.org"
+        return 1
     fi
     
-    print_success "Python3 installed successfully"
+    NODE_VERSION=$(node -v | sed 's/v//')
+    NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
+    
+    if [ "$NODE_MAJOR" -lt "$MIN_NODE_VERSION" ]; then
+        print_error "Node.js version $NODE_VERSION is too old"
+        print_error "Please upgrade to Node.js ${MIN_NODE_VERSION}+"
+        return 1
+    fi
+    
+    print_success "Node.js $NODE_VERSION ✓"
+    return 0
 }
 
-# Install Git if not present
-install_git() {
+# Check Python
+check_python() {
+    PYTHON_CMD=""
+    
+    # Try different Python commands
+    for cmd in python3 python python3.11 python3.12; do
+        if command_exists "$cmd"; then
+            VERSION=$("$cmd" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+            if version_ge "$VERSION" "$MIN_PYTHON_VERSION"; then
+                PYTHON_CMD="$cmd"
+                break
+            fi
+        fi
+    done
+    
+    if [ -z "$PYTHON_CMD" ]; then
+        print_error "Python ${MIN_PYTHON_VERSION}+ is not installed"
+        print_error "Please install Python from https://python.org"
+        return 1
+    fi
+    
+    # Check pip
+    if ! "$PYTHON_CMD" -m pip --version >/dev/null 2>&1; then
+        print_error "pip is not installed for $PYTHON_CMD"
+        print_error "Please install pip: $PYTHON_CMD -m ensurepip"
+        return 1
+    fi
+    
+    PYTHON_VERSION=$("$PYTHON_CMD" --version | awk '{print $2}')
+    print_success "Python $PYTHON_VERSION ✓"
+    export PYTHON_CMD
+    return 0
+}
+
+# Check Git (optional but recommended)
+check_git() {
     if command_exists git; then
-        GIT_VERSION=$(git --version)
-        print_success "Git already installed: $GIT_VERSION"
-        return
+        GIT_VERSION=$(git --version | awk '{print $3}')
+        print_success "Git $GIT_VERSION ✓"
+        return 0
+    else
+        print_warning "Git is not installed (optional, but recommended for development features)"
+        return 0
     fi
-
-    print_status "Installing Git..."
-    
-    if [[ "$OS" == "macos" ]]; then
-        if command_exists brew; then
-            brew install git
-        else
-            # Git should be available with Xcode Command Line Tools
-            xcode-select --install 2>/dev/null || true
-        fi
-    elif [[ "$OS" == "linux" ]]; then
-        if command_exists apt-get; then
-            sudo apt-get install -y git
-        elif command_exists yum; then
-            sudo yum install -y git
-        elif command_exists dnf; then
-            sudo dnf install -y git
-        elif command_exists pacman; then
-            sudo pacman -S git
-        else
-            print_error "Package manager not found. Please install Git manually"
-            exit 1
-        fi
-    fi
-    
-    print_success "Git installed successfully"
 }
 
-# Clone LocalStore repository
-clone_localstore() {
-    INSTALL_DIR="$HOME/localstore"
-    
-    if [ -d "$INSTALL_DIR" ]; then
-        print_status "LocalStore directory already exists. Updating..."
-        cd "$INSTALL_DIR"
-        git pull origin main
+# Check port availability
+check_port() {
+    local port=$1
+    if [[ "$OS" == "macos" ]]; then
+        if lsof -i ":$port" >/dev/null 2>&1; then
+            return 1
+        fi
     else
-        print_status "Cloning LocalStore repository..."
-        git clone https://github.com/icedmoca/localstore.git "$INSTALL_DIR"
-        cd "$INSTALL_DIR"
+        if netstat -tuln 2>/dev/null | grep -q ":$port "; then
+            return 1
+        fi
     fi
-    
-    print_success "LocalStore repository ready at $INSTALL_DIR"
+    return 0
 }
 
 # Install dependencies
 install_dependencies() {
-    print_status "Installing root dependencies..."
-    npm install
+    print_status "Installing dependencies..."
     
+    # Install root dependencies
+    print_status "Installing root Node.js dependencies..."
+    npm ci --silent || npm install --silent
+    
+    # Install frontend dependencies
     print_status "Installing frontend dependencies..."
     cd frontend
-    npm install
+    npm ci --silent || npm install --silent
     cd ..
     
-    print_status "Installing backend dependencies..."
+    # Install backend dependencies
+    print_status "Setting up Python virtual environment..."
     cd backend
     
-    # Create virtual environment if it doesn't exist
+    # Create virtual environment
     if [ ! -d "venv" ]; then
-        python3 -m venv venv
+        "$PYTHON_CMD" -m venv venv
     fi
     
-    # Activate virtual environment
-    source venv/bin/activate
+    # Activate and install dependencies
+    if [[ "$OS" == "macos" || "$OS" == "linux" ]]; then
+        source venv/bin/activate
+    fi
     
-    # Upgrade pip
-    pip install --upgrade pip
+    print_status "Installing Python dependencies..."
+    pip install --upgrade pip setuptools wheel >/dev/null 2>&1
     
-    # Install requirements
+    # Create enhanced requirements.txt with Flask as default
+    cat > requirements.txt << 'EOF'
+# Core Framework (Flask as default)
+flask==3.0.0
+flask-cors==4.0.0
+
+# Optional Framework (FastAPI for compatibility)
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Production Server
+gunicorn==21.2.0
+
+# HTTP Client
+httpx==0.25.2
+
+# Process Management
+psutil==5.9.6
+
+# State Management
+filelock==3.13.1
+
+# Validation
+pydantic==2.5.0
+jsonschema==4.20.0
+
+# Git Support
+gitpython==3.1.40
+
+# Utilities
+python-dotenv==1.0.0
+click==8.1.7
+
+# Logging
+python-json-logger==2.0.7
+
+# Security
+cryptography==41.0.7
+
+# Development
+watchdog==3.0.0
+EOF
+    
     pip install -r requirements.txt
     
     cd ..
     
-    print_success "All dependencies installed"
+    print_success "All dependencies installed ✓"
 }
 
-# Create startup scripts
-create_startup_scripts() {
-    print_status "Creating startup scripts..."
+# Build frontend
+build_frontend() {
+    print_status "Building frontend for production..."
+    cd frontend
+    npm run build
     
-    # Create start script
-    cat > start.sh << 'EOF'
-#!/bin/bash
-cd "$(dirname "$0")"
-echo "Starting LocalStore..."
-npm run dev
-EOF
-    chmod +x start.sh
+    # Copy built files to backend/static
+    print_status "Copying built files to backend/static..."
+    rm -rf ../backend/static
+    mkdir -p ../backend/static
+    cp -r dist/* ../backend/static/
     
-    # Create production start script
-    cat > start-prod.sh << 'EOF'
-#!/bin/bash
-cd "$(dirname "$0")"
-echo "Starting LocalStore in production mode..."
-npm run prod
-EOF
-    chmod +x start-prod.sh
-    
-    # Create Windows batch files
-    cat > start.bat << 'EOF'
-@echo off
-cd /d "%~dp0"
-echo Starting LocalStore...
-npm run dev
-pause
-EOF
-    
-    cat > start-prod.bat << 'EOF'
-@echo off
-cd /d "%~dp0"
-echo Starting LocalStore in production mode...
-npm run prod
-pause
-EOF
-    
-    print_success "Startup scripts created"
+    cd ..
+    print_success "Frontend built successfully ✓"
 }
 
-# Create desktop entry (Linux)
-create_desktop_entry() {
-    if [[ "$OS" == "linux" ]]; then
-        print_status "Creating desktop entry..."
+# Create sample tool
+create_sample_tool() {
+    print_status "Creating sample calculator tool..."
+    
+    # Ensure tools directory exists
+    mkdir -p tools/calculator
+    
+    # Create calculator app.py
+    cat > tools/calculator/app.py << 'EOF'
+"""
+Sample Calculator Tool for LocalStore
+A simple web-based calculator with FastAPI
+"""
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Union
+import math
+
+app = FastAPI(title="Calculator", version="1.0.0")
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Models
+class Calculation(BaseModel):
+    expression: str
+
+class Result(BaseModel):
+    result: Union[float, str]
+    expression: str
+
+class HealthCheck(BaseModel):
+    status: str
+    name: str
+    version: str
+
+# Health check endpoint
+@app.get("/health", response_model=HealthCheck)
+async def health():
+    return HealthCheck(
+        status="healthy",
+        name="Calculator",
+        version="1.0.0"
+    )
+
+# Calculator endpoint
+@app.post("/calculate", response_model=Result)
+async def calculate(calc: Calculation):
+    try:
+        # Safe evaluation with limited functions
+        allowed_names = {
+            k: v for k, v in math.__dict__.items() if not k.startswith("_")
+        }
+        allowed_names.update({
+            "abs": abs,
+            "round": round,
+            "min": min,
+            "max": max,
+        })
         
-        DESKTOP_FILE="$HOME/.local/share/applications/localstore.desktop"
-        mkdir -p "$(dirname "$DESKTOP_FILE")"
+        # Evaluate the expression
+        result = eval(calc.expression, {"__builtins__": {}}, allowed_names)
         
-        cat > "$DESKTOP_FILE" << EOF
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=LocalStore
-Comment=Self-hosted Python Tool Marketplace
-Exec=$PWD/start.sh
-Icon=$PWD/frontend/public/favicon.ico
-Terminal=true
-Categories=Development;IDE;
+        return Result(
+            result=float(result),
+            expression=calc.expression
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Frontend route
+@app.get("/")
+async def root():
+    return {
+        "message": "Calculator API",
+        "endpoints": {
+            "/health": "Health check",
+            "/calculate": "Calculate expression (POST)",
+            "/docs": "API documentation"
+        }
+    }
 EOF
-        
-        print_success "Desktop entry created"
+
+    # Create requirements.txt
+    cat > tools/calculator/requirements.txt << 'EOF'
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+EOF
+
+    print_success "Sample calculator tool created ✓"
+}
+
+# Create production scripts
+create_scripts() {
+    print_status "Creating production scripts..."
+    
+    # Create run script for development
+    cat > run_dev.sh << 'EOF'
+#!/bin/bash
+# Development mode launcher
+echo "Starting LocalStore in development mode..."
+
+# Check if port 3000 and 8000 are available
+for port in 3000 8000; do
+    if lsof -i ":$port" >/dev/null 2>&1; then
+        echo "Error: Port $port is already in use"
+        exit 1
     fi
+done
+
+# Start with npm run dev
+npm run dev
+EOF
+    chmod +x run_dev.sh
+    
+    # Create run script for production  
+    cat > run_prod.sh << 'EOF'
+#!/bin/bash
+# Production mode launcher
+echo "Starting LocalStore in production mode..."
+
+# Check if port 8000 is available
+if lsof -i ":8000" >/dev/null 2>&1; then
+    echo "Error: Port 8000 is already in use"
+    exit 1
+fi
+
+# Start with npm run prod
+npm run prod
+EOF
+    chmod +x run_prod.sh
+    
+    print_success "Production scripts created ✓"
 }
 
-# Main installation function
+# Initialize data directory
+initialize_data() {
+    print_status "Initializing data directory..."
+    
+    # Create data directory
+    mkdir -p backend/data
+    
+    # Create initial registry
+    cat > backend/registry.json << 'EOF'
+[
+    {
+        "id": "calculator",
+        "name": "Calculator",
+        "description": "A simple web-based calculator with mathematical functions",
+        "version": "1.0.0",
+        "author": "LocalStore",
+        "path": "tools/calculator",
+        "entry": "app:app",
+        "tags": ["utility", "math"],
+        "icon": "calculator"
+    }
+]
+EOF
+    
+    print_success "Data directory initialized ✓"
+}
+
+# Run smoke test
+run_smoke_test() {
+    print_status "Running smoke test..."
+    
+    # Start backend in background
+    cd backend
+    source venv/bin/activate
+    export FLASK_DEBUG=0
+    python app.py &
+    BACKEND_PID=$!
+    cd ..
+    
+    # Wait for backend to start
+    sleep 3
+    
+    # Test health endpoint
+    if curl -s http://localhost:8000/api/health | grep -q '"ok":true'; then
+        print_success "Backend health check passed ✓"
+    else
+        print_error "Backend health check failed"
+        kill $BACKEND_PID 2>/dev/null
+        return 1
+    fi
+    
+    # Stop backend
+    kill $BACKEND_PID 2>/dev/null
+    wait $BACKEND_PID 2>/dev/null
+    
+    print_success "Smoke test passed ✓"
+    return 0
+}
+
+# Main installation
 main() {
-    echo -e "${BLUE}🚀 Starting LocalStore installation...${NC}"
-    echo ""
+    print_banner
     
-    # Detect OS
-    detect_os
+    # Check prerequisites
+    print_status "Checking prerequisites..."
+    check_os || exit 1
+    check_node || exit 1
+    check_python || exit 1
+    check_git
     
-    # Install prerequisites
-    install_git
-    install_node
-    install_python
+    # Check port availability
+    if ! check_port $DEFAULT_PORT; then
+        print_warning "Port $DEFAULT_PORT is in use. LocalStore will use the next available port."
+    fi
     
-    # Clone and setup LocalStore
-    clone_localstore
+    # Install dependencies
     install_dependencies
-    create_startup_scripts
-    create_desktop_entry
     
-    echo ""
-    echo -e "${GREEN}🎉 LocalStore installation completed successfully!${NC}"
-    echo ""
-    echo -e "${YELLOW}📖 Quick Start:${NC}"
-    echo -e "   Development mode:  ${BLUE}./start.sh${NC} or ${BLUE}npm run dev${NC}"
-    echo -e "   Production mode:   ${BLUE}./start-prod.sh${NC} or ${BLUE}npm run prod${NC}"
-    echo ""
-    echo -e "${YELLOW}🌐 URLs:${NC}"
-    echo -e "   Development: ${BLUE}http://localhost:3000${NC} (frontend) + ${BLUE}http://localhost:8000${NC} (backend)"
-    echo -e "   Production:  ${BLUE}http://localhost:8000${NC} (everything)"
-    echo ""
-    echo -e "${YELLOW}📚 Documentation:${NC}"
-    echo -e "   README:      ${BLUE}cat README.md${NC}"
-    echo -e "   GitHub:      ${BLUE}https://github.com/icedmoca/localstore${NC}"
-    echo ""
-    echo -e "${GREEN}✨ Enjoy building with LocalStore!${NC}"
+    # Build frontend
+    build_frontend
     
-    # Offer to start immediately
+    # Create sample tool
+    create_sample_tool
+    
+    # Initialize data
+    initialize_data
+    
+    # Create scripts
+    create_scripts
+    
+    # Run smoke test
+    if run_smoke_test; then
+        print_success "Installation completed successfully! 🎉"
+    else
+        print_warning "Installation completed but smoke test failed"
+    fi
+    
+    # Print next steps
     echo ""
-    read -p "🚀 Start LocalStore now? (y/n): " -n 1 -r
+    echo -e "${GREEN}✨ LocalStore is ready!${NC}"
+    echo ""
+    echo -e "${YELLOW}Next steps:${NC}"
+    echo -e "  1. Start development mode:  ${BLUE}npm run dev${NC}"
+    echo -e "  2. Start production mode:   ${BLUE}npm run prod${NC}"
+    echo -e "  3. Access LocalStore at:    ${BLUE}http://localhost:8000${NC}"
+    echo ""
+    echo -e "${YELLOW}Quick commands:${NC}"
+    echo -e "  • Run tests:     ${BLUE}npm test${NC}"
+    echo -e "  • Run E2E tests: ${BLUE}npm run e2e${NC}"
+    echo -e "  • View logs:     ${BLUE}tail -f backend/app.log${NC}"
+    echo ""
+    
+    # Offer to start now
+    read -p "🚀 Start LocalStore now in production mode? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${BLUE}Starting LocalStore in development mode...${NC}"
-        npm run dev
+        echo -e "${BLUE}Starting LocalStore...${NC}"
+        npm run prod
     fi
 }
 
-# Run main function
+# Handle errors
+trap 'print_error "Installation failed. Check the error messages above."; exit 1' ERR
+
+# Run main installation
 main "$@"

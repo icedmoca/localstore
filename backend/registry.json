@@ -6,15 +6,30 @@
     "version": "1.0.0",
     "author": "LocalStore",
     "path": "examples/hello-fapi",
-    "entry": "app:app"
+    "entry": "app:app",
+    "tags": ["example", "demo"],
+    "icon": "code"
   },
   {
     "id": "calculator",
-    "name": "Advanced Calculator",
-    "description": "A feature-rich scientific calculator with history and keyboard support",
+    "name": "Calculator",
+    "description": "A simple web-based calculator with mathematical functions",
     "version": "1.0.0",
     "author": "LocalStore",
     "path": "tools/calculator",
-    "entry": "app:app"
+    "entry": "app:app",
+    "tags": ["utility", "math"],
+    "icon": "calculator"
+  },
+  {
+    "id": "notepad",
+    "name": "Notepad",
+    "description": "A simple web-based text editor with auto-save",
+    "version": "1.0.0",
+    "author": "LocalStore",
+    "path": "tools/notepad",
+    "entry": "app:app",
+    "tags": ["utility", "editor", "notes"],
+    "icon": "annotation"
   }
 ]

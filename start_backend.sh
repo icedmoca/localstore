@@ -1,8 +1,8 @@
 #!/bin/bash
 cd backend
 source venv/bin/activate
-echo "Starting FastAPI backend..."
+echo "Starting Flask backend..."
 echo "Virtual environment: $(which python)"
 echo "Python version: $(python --version)"
-echo "FastAPI version: $(python -c "import fastapi; print(fastapi.__version__)")"
-python fastapi_app.py
+echo "Flask version: $(python -c "import flask; print(flask.__version__)")"
+python app.py

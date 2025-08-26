@@ -43,9 +43,7 @@ import Editor from '../components/Editor'
 import api from '../api'
 import type { Tool } from '../types'
 import type { IconName } from '@blueprintjs/core'
-
-// Create a global toaster instance
-const AppToaster = Toaster.create({ position: Position.TOP })
+import { toast } from '../components/ToastManager'
 
 interface FileNode extends TreeNodeInfo {
   id: string
@@ -245,10 +243,7 @@ export default function EditTool() {
       setActiveTabId(newTab.id)
       setBreadcrumbs(path.split('/'))
     } catch (err) {
-      AppToaster.show({
-        message: `Failed to open file: ${path}`,
-        intent: Intent.DANGER
-      })
+      toast.error(`Failed to open file: ${path}`)
     }
   }
 
@@ -284,16 +279,9 @@ export default function EditTool() {
         )
       )
       
-      AppToaster.show({
-        message: `Saved ${path.split('/').pop()}`,
-        intent: Intent.SUCCESS,
-        timeout: 2000
-      })
+      toast.success(`Saved ${path.split('/').pop()}`, 2000)
     } catch (err) {
-      AppToaster.show({
-        message: `Failed to save ${path}`,
-        intent: Intent.DANGER
-      })
+      toast.error(`Failed to save ${path}`)
     }
   }
 
@@ -346,16 +334,10 @@ export default function EditTool() {
       await fetch(`/api/tools/${toolId}/start`, { method: 'POST' })
       setToolStatus('running')
       setToolPort(8000) // Default port
-      AppToaster.show({
-        message: 'Tool started successfully',
-        intent: Intent.SUCCESS
-      })
+      toast.success('Tool started successfully')
     } catch (err) {
       setToolStatus('stopped')
-      AppToaster.show({
-        message: 'Failed to start tool',
-        intent: Intent.DANGER
-      })
+      toast.error('Failed to start tool')
     }
   }
 
@@ -365,16 +347,10 @@ export default function EditTool() {
       await fetch(`/api/tools/${toolId}/stop`, { method: 'POST' })
       setToolStatus('stopped')
       setToolPort(null)
-      AppToaster.show({
-        message: 'Tool stopped',
-        intent: Intent.PRIMARY
-      })
+      toast.info('Tool stopped')
     } catch (err) {
       setToolStatus('running')
-      AppToaster.show({
-        message: 'Failed to stop tool',
-        intent: Intent.DANGER
-      })
+      toast.error('Failed to stop tool')
     }
   }
 
