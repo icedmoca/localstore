@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "npm -C frontend ci && npm -C frontend run build",
-    "prod": "npm -C frontend ci && npm -C frontend run build && FLASK_DEBUG=0 PYTHONUNBUFFERED=1 python3 backend/app.py",
-    "backend": "cd backend && (./.venv/bin/python app.py || python3 app.py || python app.py)",
-    "frontend": "cd frontend && vite --host",
+    "prod": "npm -C frontend ci && npm -C frontend run build && cd backend && source venv/bin/activate && FLASK_DEBUG=0 PYTHONUNBUFFERED=1 python fastapi_app.py",
+    "backend": "cd backend && source venv/bin/activate && python fastapi_app.py",
+    "frontend": "cd frontend && npx vite --host",
     "dev": "concurrently -k -n back,front -c blue,magenta \"npm run backend\" \"npm run frontend\"",
     "test:contract": "bash backend/contract_test.sh"
   },

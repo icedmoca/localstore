@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Tree, TreeNodeInfo, ContextMenu, Menu, MenuItem, Tab, Tabs, NonIdealState } from '@blueprintjs/core'
 import { ContextMenu2 } from '@blueprintjs/popover2'
-import { useRoute, Link } from 'wouter'
+import { useParams, Link } from 'react-router-dom'
 import Editor from '../components/Editor'
 import type { FileNode } from '../types'
 
@@ -15,16 +15,15 @@ async function j(url:string, init?:RequestInit){
 }
 
 export default function DevMode(){
-  const [match, params] = useRoute('/dev/:id')
-  // @ts-ignore - params can be null but we handle it gracefully
-  const toolId = params?.id ?? ''
+  const params = useParams()
+  const toolId = params.id || ''
   if (!toolId) {
     return (
       <NonIdealState
         icon="folder-open"
         title="Select a Tool for Development"
         description="Choose a tool from the Installed tab to start developing"
-        action={<Link href="/installed"><Button intent="primary" text="Go to Installed Tools" /></Link>}
+        action={<Link to="/dashboard"><Button intent="primary" text="Go to Dashboard" /></Link>}
       />
     )
   }
@@ -187,7 +186,7 @@ export default function DevMode(){
         icon="folder-open"
         title="Select a Tool for Development"
         description="Choose a tool from the Installed tab to start developing"
-        action={<Link href="/installed"><Button intent="primary" text="Go to Installed Tools" /></Link>}
+        action={<Link to="/dashboard"><Button intent="primary" text="Go to Dashboard" /></Link>}
       />
     )
   }

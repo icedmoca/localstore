@@ -9,6 +9,9 @@ export interface Tool {
   entry?: string
   autostart?: boolean
   python?: string
+  tags?: string[]
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface RegistryItem {

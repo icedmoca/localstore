@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Tag, Dialog, Spinner, Intent, ProgressBar } from '@blueprintjs/core'
-import { Link } from 'wouter'
+import { Link } from 'react-router-dom'
 import api from '../api'
 import type { Tool } from '../types'
 import StatusBadge from './StatusBadge'
@@ -19,13 +19,19 @@ export default function ToolCard({ t, onChange, installProgress, setInstallProgr
   
   // Use global progress state if available, otherwise local state
   const hasGlobalProgress = installProgress !== undefined && setInstallProgress !== undefined
-  const [localInstallProgress, setLocalInstallProgress] = useState(0)
+  const [localInstallProgress, setLocalInstallProgress] = useState<number>(0)
   const [localShowProgress, setLocalShowProgress] = useState(false)
   const [localProgressIntent, setLocalProgressIntent] = useState<Intent>(Intent.PRIMARY)
   
   const progress = hasGlobalProgress ? installProgress?.progress || 0 : localInstallProgress
   const showProgress = hasGlobalProgress ? !!installProgress : localShowProgress
   const progressIntent = hasGlobalProgress ? (installProgress?.intent || 'primary') as Intent : localProgressIntent
+
+  // Helper function to normalize progress values
+  const toPct = (x: unknown) => {
+    const n = Number(x);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+  };
 
   useEffect(() => {
     if (!showLogs || t.status !== 'running') return
@@ -62,11 +68,11 @@ export default function ToolCard({ t, onChange, installProgress, setInstallProgr
             currentProgress = 90
           }
           
-          if (hasGlobalProgress && setInstallProgress) {
-            setInstallProgress(currentProgress, 'primary')
-          } else {
-            setLocalInstallProgress(currentProgress)
-          }
+                      if (hasGlobalProgress && setInstallProgress) {
+              setInstallProgress(toPct(currentProgress), 'primary')
+            } else {
+              setLocalInstallProgress(toPct(currentProgress))
+            }
         }, 300)
         
         await f()
@@ -154,7 +160,7 @@ export default function ToolCard({ t, onChange, installProgress, setInstallProgr
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {isInstalled && (
               <>
-                <Link href={`/edit/${t.id}`}>
+                <Link to={`/tools/${t.id}/edit`}>
                   <Button 
                     size="small" 
                     icon="edit"
@@ -207,15 +213,19 @@ export default function ToolCard({ t, onChange, installProgress, setInstallProgr
           </div>
         </div>
         
-        {showProgress && (
-          <ProgressBar
-            intent={progressIntent}
-            value={installProgress / 100}
-            animate={progressIntent === Intent.PRIMARY}
-            stripes={progressIntent === Intent.PRIMARY}
-            style={{ marginTop: 12 }}
-          />
-        )}
+        {showProgress && (() => {
+          const progressPct = Math.max(0, Math.min(100, Number(progress) || 0));
+          const progress01 = progressPct / 100;
+          return (
+            <ProgressBar
+              intent={progressIntent}
+              value={progress01}
+              animate={progressIntent === Intent.PRIMARY}
+              stripes={progressIntent === Intent.PRIMARY}
+              style={{ marginTop: 12 }}
+            />
+          );
+        })()}
       </Card>
       
       <Dialog

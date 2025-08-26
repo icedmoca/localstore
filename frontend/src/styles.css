@@ -424,3 +424,401 @@ h1, h2, h3, h4, h5, h6 {
 .bp5-dark .bp5-progress-bar.bp5-intent-success .bp5-progress-meter {
   background-color: #15b371;
 }
+
+/* IDE-specific styles */
+.ide-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+}
+
+.ide-container .bp5-navbar {
+  flex-shrink: 0;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.left-panel, .right-panel {
+  background-color: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.right-panel {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+.editor-panel {
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bottom-panel {
+  background-color: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Panel resize handles */
+.react-resizable-handle {
+  background-color: var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.react-resizable-handle:hover {
+  background-color: var(--accent);
+}
+
+/* File tree styling */
+.bp5-tree {
+  background-color: transparent;
+  padding: 4px;
+}
+
+.bp5-tree-node {
+  padding: 2px 0;
+}
+
+.bp5-tree-node-content {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bp5-tree-node-content:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.bp5-tree-node-content.bp5-tree-node-selected {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--accent);
+}
+
+/* Git status indicators */
+.git-modified {
+  color: #f59e0b;
+}
+
+.git-added {
+  color: #10b981;
+}
+
+.git-deleted {
+  color: #ef4444;
+}
+
+.git-untracked {
+  color: #8b5cf6;
+}
+
+/* Editor tabs styling */
+.bp5-tabs.bp5-vertical > .bp5-tab-list {
+  border-right: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+.bp5-tabs:not(.bp5-vertical) > .bp5-tab-list {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 8px;
+}
+
+.bp5-tab {
+  margin: 0;
+  border-radius: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bp5-tab[aria-selected="true"] {
+  background-color: var(--bg);
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.bp5-tab:hover:not([aria-selected="true"]) {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Editor tab close button */
+.bp5-tab .bp5-button {
+  padding: 2px;
+  min-height: 16px;
+  min-width: 16px;
+  opacity: 0.6;
+}
+
+.bp5-tab .bp5-button:hover {
+  opacity: 1;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Status indicators */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-running {
+  background-color: #10b981;
+}
+
+.status-stopped {
+  background-color: #ef4444;
+}
+
+.status-starting {
+  background-color: #f59e0b;
+  animation: pulse 1s infinite;
+}
+
+/* Terminal styling */
+.terminal-container {
+  font-family: 'Berkeley Mono TX', 'SF Mono', monospace;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 4px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.terminal-input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-family: inherit;
+  width: 100%;
+  padding: 4px 0;
+}
+
+/* Problems panel styling */
+.problems-list {
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.problem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.problem-item:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.problem-severity-error {
+  color: #ef4444;
+}
+
+.problem-severity-warning {
+  color: #f59e0b;
+}
+
+.problem-severity-info {
+  color: #3b82f6;
+}
+
+/* Command palette styling */
+.bp5-omnibar {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.bp5-omnibar .bp5-input {
+  font-size: 16px;
+  padding: 12px;
+}
+
+.bp5-omnibar .bp5-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Search results styling */
+.search-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.search-result:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.search-result-file {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.search-result-matches {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Breadcrumbs styling */
+.bp5-breadcrumbs {
+  padding: 8px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.bp5-breadcrumb {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bp5-breadcrumb:last-child {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* Panel toggle buttons */
+.panel-toggle {
+  position: absolute;
+  z-index: 10;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.bottom-panel-toggle {
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.right-panel-toggle {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Scrollbar styling for IDE panels */
+.ide-container ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ide-container ::-webkit-scrollbar-track {
+  background: var(--card);
+}
+
+.ide-container ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.ide-container ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Responsive design for IDE */
+@media (max-width: 1024px) {
+  .ide-container .left-panel,
+  .ide-container .right-panel {
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ide-container {
+    flex-direction: column;
+  }
+  
+  .ide-container .bp5-navbar .bp5-navbar-group {
+    flex-wrap: wrap;
+  }
+}
+
+/* Dark mode specific IDE styling */
+.bp5-dark .ide-container {
+  background-color: var(--bg);
+}
+
+.bp5-dark .left-panel,
+.bp5-dark .right-panel,
+.bp5-dark .bottom-panel {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+.bp5-dark .editor-panel {
+  background-color: var(--bg);
+}
+
+.bp5-dark .bp5-tree-node-content:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.bp5-dark .bp5-tree-node-content.bp5-tree-node-selected {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.bp5-dark .bp5-tab[aria-selected="true"] {
+  background-color: var(--bg);
+  color: var(--accent);
+}
+
+.bp5-dark .terminal-container {
+  background-color: #0f1419;
+  color: #e6e1dc;
+}
+
+/* Monaco editor integration */
+.monaco-editor {
+  background-color: transparent !important;
+}
+
+.bp5-dark .monaco-editor {
+  background-color: transparent !important;
+}
+
+/* Auto-save indicator */
+.auto-save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.auto-save-indicator.saving {
+  color: var(--accent);
+}
+
+.auto-save-indicator.saved {
+  color: #10b981;
+}

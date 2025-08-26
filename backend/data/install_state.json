@@ -18,7 +18,8 @@
       "port": null,
       "path": "/mnt/c/Users/kyled/Documents/localstore/tools/calculator",
       "venv": "/mnt/c/Users/kyled/Documents/localstore/tools/calculator/.venv",
-      "entry": "app:app"
+      "entry": "app:app",
+      "autostart": false
     }
   }
 }

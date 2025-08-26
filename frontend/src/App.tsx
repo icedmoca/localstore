@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Router, Route, useLocation } from 'wouter'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { 
   Button, 
   Navbar, 
@@ -17,10 +17,14 @@ import EditTool from './pages/EditTool'
 import AddToolDialog from './pages/AddToolDialog'
 import Runtimes from './pages/Runtimes'
 import Settings from './pages/Settings'
+import Preview from './pages/Preview'
+import NotFound from './components/NotFound'
+import ToolSettingsPage from './features/settings/ToolSettingsPage'
 import api from './api'
 
 function AppContent() {
-  const [location, setLocation] = useLocation()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [darkTheme, setDarkTheme] = useState(localStorage.getItem('theme') === 'dark')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [tools, setTools] = useState(null)
@@ -82,41 +86,43 @@ function AppContent() {
   }, [])
 
   const navButtons = [
-    { path: '/', label: 'Dashboard', icon: 'dashboard' },
+    { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/runtimes', label: 'Runtimes', icon: 'code-block' },
     { path: '/settings', label: 'Settings', icon: 'cog' }
   ]
 
   const getBreadcrumbs = (): BreadcrumbProps[] => {
-    if (location === '/') {
+    if (location.pathname === '/dashboard' || location.pathname === '/') {
       return [
         { text: 'Dashboard', current: true },
         { text: 'Tools', current: true }
       ]
-    } else if (location === '/runtimes') {
+    } else if (location.pathname === '/runtimes') {
       return [
         { text: 'Runtimes', current: true },
         { text: 'List', current: true }
       ]
-    } else if (location === '/settings') {
+    } else if (location.pathname === '/settings') {
       return [
         { text: 'Settings', current: true }
       ]
-    } else if (location.startsWith('/dev/')) {
-      const toolId = location.split('/')[2] || 'Tool'
+    } else if (location.pathname.startsWith('/dev/')) {
+      const toolId = location.pathname.split('/')[2] || 'Tool'
       const toolName = (tools || []).find?.((t:any) => t.id === toolId)?.name || toolId
       return [
-        { text: 'Dashboard', href: '/', onClick: () => setLocation('/') },
-        { text: toolName, href: `/edit/${toolId}`, onClick: () => setLocation(`/edit/${toolId}`) },
+        { text: 'Dashboard', href: '/dashboard', onClick: () => navigate('/dashboard') },
+        { text: toolName, href: `/tools/${toolId}/edit`, onClick: () => navigate(`/tools/${toolId}/edit`) },
         { text: 'Development Mode', current: true }
       ]
-    } else if (location.startsWith('/edit/')) {
-      const toolId = location.split('/')[2] || 'Tool'
+    } else if (location.pathname.startsWith('/tools/')) {
+      const pathParts = location.pathname.split('/')
+      const toolId = pathParts[2] || 'Tool'
+      const page = pathParts[3] || 'edit'
       const toolName = (tools || []).find?.((t:any) => t.id === toolId)?.name || toolId
       return [
-        { text: 'Dashboard', href: '/', onClick: () => setLocation('/') },
-        { text: toolName, href: `/edit/${toolId}`, onClick: () => setLocation(`/edit/${toolId}`) },
-        { text: 'Edit Tool', current: true }
+        { text: 'Dashboard', href: '/dashboard', onClick: () => navigate('/dashboard') },
+        { text: toolName, href: `/tools/${toolId}/edit`, onClick: () => navigate(`/tools/${toolId}/edit`) },
+        { text: page === 'edit' ? 'Edit Tool' : page === 'settings' ? 'Settings' : 'Preview', current: true }
       ]
     }
     return []
@@ -134,8 +140,8 @@ function AppContent() {
               variant="minimal"
               icon={btn.icon as any}
               text={btn.label}
-              active={location === btn.path || (btn.path !== '/' && location.startsWith(btn.path))}
-              onClick={() => setLocation(btn.path)}
+              active={location.pathname === btn.path || (btn.path !== '/' && location.pathname.startsWith(btn.path))}
+              onClick={() => navigate(btn.path)}
             />
           ))}
         </NavbarGroup>
@@ -186,31 +192,41 @@ function AppContent() {
           </Callout>
         )}
 
-        <Route path="/">
-          <Dashboard 
-            tools={tools} 
-            onRefresh={loadTools} 
-            onAddTool={() => setShowAddDialog(true)}
-            darkTheme={darkTheme}
-            installProgress={installProgress}
-            setInstallProgress={setInstallProgress}
-          />
-        </Route>
-        <Route path="/dev/:id">
-          <DevMode />
-        </Route>
-        <Route path="/edit/:id">
-          <EditTool />
-        </Route>
-        <Route path="/runtimes">
-          <Runtimes />
-        </Route>
-        <Route path="/settings">
-          <Settings 
-            darkTheme={darkTheme} 
-            setDarkTheme={setDarkTheme} 
-          />
-        </Route>
+        <Routes>
+          <Route path="/" element={
+            <Dashboard 
+              tools={tools} 
+              onRefresh={loadTools} 
+              onAddTool={() => setShowAddDialog(true)}
+              darkTheme={darkTheme}
+              installProgress={installProgress}
+              setInstallProgress={setInstallProgress}
+            />
+          } />
+          <Route path="/dashboard" element={
+            <Dashboard 
+              tools={tools} 
+              onRefresh={loadTools} 
+              onAddTool={() => setShowAddDialog(true)}
+              darkTheme={darkTheme}
+              installProgress={installProgress}
+              setInstallProgress={setInstallProgress}
+            />
+          } />
+          <Route path="/tools/:toolId/edit" element={<EditTool />} />
+          <Route path="/tools/:toolId/settings" element={<ToolSettingsPage />} />
+          <Route path="/tools/:toolId/preview" element={<Preview />} />
+          <Route path="/dev/:id" element={<DevMode />} />
+          <Route path="/edit/:id" element={<EditTool />} />
+          <Route path="/runtimes" element={<Runtimes />} />
+          <Route path="/settings" element={
+            <Settings 
+              darkTheme={darkTheme} 
+              setDarkTheme={setDarkTheme} 
+            />
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
       
       {showAddDialog && <AddToolDialog onClose={() => setShowAddDialog(false)} />}
@@ -219,9 +235,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <Router>
-      <AppContent />
-    </Router>
-  )
+  return <AppContent />
 }

@@ -4,6 +4,16 @@
 
 LocalStore transforms any Python package into a one-click, browser-accessible web tool. It provides a unified interface for discovering, installing, running, and developing Python-based applications locally with zero external dependencies.
 
+## **⚡ Quick Install**
+
+Get LocalStore running instantly with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/icedmoca/localstore/main/install.sh | bash
+```
+
+The install script automatically sets up Node.js, Python, dependencies, and LocalStore itself. Once complete, access LocalStore at `http://localhost:8000`.
+
 ![LocalStore Dashboard](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![React](https://img.shields.io/badge/React-18+-61dafb)
