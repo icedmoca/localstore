@@ -271,7 +271,7 @@ export default function Preview() {
         <NavbarGroup align={Alignment.RIGHT}>
           <Tag 
             intent={toolStatus === 'running' ? 'success' : 'danger'}
-            icon={toolStatus === 'running' ? 'play' : 'stop'}
+            icon={(toolStatus === 'running' ? 'play' : 'stop') as any}
           >
             {toolStatus.toUpperCase()}
           </Tag>
@@ -428,7 +428,7 @@ export default function Preview() {
             alignItems: 'center' 
           }}>
             <NonIdealState
-              icon="error"
+              icon={"error" as any}
               title="Preview Unavailable"
               description="The tool is running but preview is not available"
               action={

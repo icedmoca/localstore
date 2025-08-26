@@ -470,7 +470,7 @@ export default function EditTool() {
             <ButtonGroup>
               <Tooltip content={toolStatus === 'running' ? 'Stop Tool' : 'Start Tool'}>
                 <Button
-                  icon={toolStatus === 'running' ? 'stop' : 'play'}
+                  icon={(toolStatus === 'running' ? 'stop' : 'play') as any}
                   intent={toolStatus === 'running' ? 'danger' : 'success'}
                   loading={toolStatus === 'starting' || toolStatus === 'stopping'}
                   onClick={toolStatus === 'running' ? stopTool : runTool}

@@ -23,7 +23,7 @@ export const toast = {
   info: (message: string, timeout = 3000) => {
     toaster.show({ message, intent: Intent.PRIMARY, icon: 'info-sign' as any, timeout })
   },
-  loading: (message: string) => {
+  loading: (message: string): string => {
     return toaster.show({ 
       message, 
       intent: Intent.NONE, 
@@ -42,5 +42,5 @@ export const toast = {
 // Make toast globally available
 if (typeof window !== 'undefined') {
   (window as any).__toast = toast.show
-  (window as any).toast = toast
+  ;(window as any).toast = toast
 }

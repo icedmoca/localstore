@@ -426,7 +426,7 @@ export default function ToolSettingsDialog({ isOpen, onClose, tool, onSave }: To
                             rightElement={
                               envVars[rowIndex]?.isSecret ? (
                                 <Button
-                                  icon={envVars[rowIndex]?.isRevealed ? 'eye-off' : 'eye-open'}
+                                  icon={(envVars[rowIndex]?.isRevealed ? 'eye-off' : 'eye-open') as any}
                                   minimal
                                   small
                                   onClick={() => updateEnvVar(rowIndex, 'isRevealed', !envVars[rowIndex]?.isRevealed)}
