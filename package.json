@@ -15,6 +15,7 @@
     "test:backend": "cd backend && source venv/bin/activate && pytest",
     "e2e": "cd frontend && npm run e2e",
     "test:api": "cd backend && source venv/bin/activate && python -m pytest tests/",
+    "test:contract": "cd backend && bash contract_test.sh",
     "lint": "cd frontend && npm run typecheck",
     "smoke": "bash smoke_test.sh"
   },
