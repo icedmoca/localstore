@@ -47,7 +47,7 @@ class InstallTransaction:
             # Error occurred, rollback
             logger.error(f"Installation failed for {self.tool_id}: {exc_val}")
             self.rollback()
-    else:
+        else:
             # Success, cleanup temp files
             self.cleanup()
         
@@ -142,7 +142,7 @@ def ensure_tool_installed(tool_id: str, metadata: Dict[str, Any],
             _download_and_extract(metadata["url"], tool_path)
             transaction.mark_step_complete("download_files")
             
-    else:
+        else:
             raise InstallationError("No valid source specified (path, repo, or url)")
         
         # Step 2: Create virtual environment
